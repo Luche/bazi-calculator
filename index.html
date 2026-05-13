@@ -15,6 +15,9 @@
     </label>
     <label>Time of Birth
       <input type="time" id="inp-time" required value="10:00">
+      <label style="font-weight:400;flex-direction:row;gap:6px;align-items:center;margin-top:5px;font-size:.82rem">
+        <input type="checkbox" id="no-hour"> Unknown / No hour
+      </label>
     </label>
     <label>Name (optional)
       <input type="text" id="inp-name" placeholder="Optional">
@@ -57,9 +60,10 @@
       const dateVal = document.getElementById('inp-date').value;
       const timeVal = document.getElementById('inp-time').value;
       const sex = document.querySelector('input[name="sex"]:checked').value;
-      if (!dateVal || !timeVal) { alert('Please enter date and time.'); return; }
+      const noHour = document.getElementById('no-hour').checked;
+      if (!dateVal || (!timeVal && !noHour)) { alert('Please enter date and time.'); return; }
       const [year, month, day] = dateVal.split('-').map(Number);
-      const [hour, minute] = timeVal.split(':').map(Number);
+      const [hour, minute] = noHour ? [null, null] : timeVal.split(':').map(Number);
       try {
         const chart = computeChart(year, month, day, hour, minute, sex);
         renderChart(document.getElementById('result'), chart);
@@ -78,6 +82,12 @@
           `<p style="color:red">Error: ${e.message}</p>`;
         console.error(e);
       }
+    });
+
+    document.getElementById('no-hour').addEventListener('change', function() {
+      const timeInput = document.getElementById('inp-time');
+      timeInput.disabled = this.checked;
+      timeInput.style.opacity = this.checked ? '0.4' : '1';
     });
 
     // Test mode: ?test=1

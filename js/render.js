@@ -37,7 +37,25 @@ function _renderInteractionsRow(items, title) {
   return div;
 }
 
-function buildPillarCol(pillarIdx, chart, derivedData, stars, interactions, labelText) {
+function _buildNavRow(navInfo) {
+  const navRow = document.createElement('div');
+  navRow.className = 'pillar-nav-row';
+  const btnMinus = document.createElement('button');
+  btnMinus.className = 'nav-btn';
+  btnMinus.textContent = '−';
+  btnMinus.onclick = e => { e.stopPropagation(); navInfo.onNav(navInfo.component, -1); };
+  const valSpan = document.createElement('span');
+  valSpan.className = 'nav-val';
+  valSpan.textContent = navInfo.displayValue;
+  const btnPlus = document.createElement('button');
+  btnPlus.className = 'nav-btn';
+  btnPlus.textContent = '+';
+  btnPlus.onclick = e => { e.stopPropagation(); navInfo.onNav(navInfo.component, +1); };
+  navRow.append(btnMinus, valSpan, btnPlus);
+  return navRow;
+}
+
+function buildPillarCol(pillarIdx, chart, derivedData, stars, interactions, labelText, navInfo) {
   const p = chart.pillars[pillarIdx];
 
   if (!p) {
@@ -69,6 +87,9 @@ function buildPillarCol(pillarIdx, chart, derivedData, stars, interactions, labe
   lbl.className = 'pillar-label';
   lbl.textContent = labelText;
   col.appendChild(lbl);
+
+  // Nav controls
+  if (navInfo) col.appendChild(_buildNavRow(navInfo));
 
   // HS box
   const hsBox = document.createElement('div');
@@ -275,7 +296,7 @@ function buildLuckRow(luckArr, chart) {
   return container;
 }
 
-function renderChart(containerEl, chart) {
+function renderChart(containerEl, chart, onDateNav) {
   containerEl.innerHTML = '';
 
   // Jie boundary warning
@@ -304,8 +325,17 @@ function renderChart(containerEl, chart) {
   // Display order: Hour | Day | Month | Year (Chinese convention)
   const order = [3, 2, 1, 0];
   const LABELS = ['Year', 'Month', 'Day', 'Hour'];
+  const _MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const _dob = chart.dob;
+  const _navInfos = onDateNav ? {
+    0: { component: 'year',  displayValue: String(_dob.getFullYear()) },
+    1: { component: 'month', displayValue: _MONTH_ABBR[_dob.getMonth()] },
+    2: { component: 'day',   displayValue: String(_dob.getDate()) },
+    3: chart.hour ? { component: 'hour', displayValue: String(_dob.getHours()).padStart(2,'0') + ':00' } : null,
+  } : { 0: null, 1: null, 2: null, 3: null };
   order.forEach(idx => grid.appendChild(
-    buildPillarCol(idx, chart, derivedData, starsList[idx], intsList[idx], LABELS[idx])
+    buildPillarCol(idx, chart, derivedData, starsList[idx], intsList[idx], LABELS[idx],
+      _navInfos[idx] ? { ..._navInfos[idx], onNav: onDateNav } : null)
   ));
   pillarsSection.appendChild(grid);
   containerEl.appendChild(pillarsSection);

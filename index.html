@@ -56,6 +56,56 @@
   <script src="js/prompt.js"></script>
   <script src="js/render.js"></script>
   <script>
+    let _navParams = null;
+
+    function _adjustDate(params, component, delta) {
+      const {year, month, day, hour, minute, sex} = params;
+      const h = hour !== null ? hour : 12;
+      const d = new Date(year, month - 1, day, h, minute || 0);
+      if (component === 'year')  d.setFullYear(d.getFullYear() + delta);
+      if (component === 'month') d.setMonth(d.getMonth() + delta);
+      if (component === 'day')   d.setDate(d.getDate() + delta);
+      if (component === 'hour')  d.setHours(d.getHours() + delta);
+      return {
+        year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate(),
+        hour: hour !== null ? d.getHours() : null,
+        minute: hour !== null ? d.getMinutes() : null,
+        sex,
+      };
+    }
+
+    function _doRender(params) {
+      _navParams = params;
+      const {year, month, day, hour, minute, sex} = params;
+      try {
+        const chart = computeChart(year, month, day, hour, minute !== null ? minute : 0, sex);
+        renderChart(document.getElementById('result'), chart, (component, delta) => {
+          const np = _adjustDate(_navParams, component, delta);
+          document.getElementById('inp-date').value =
+            `${np.year}-${String(np.month).padStart(2,'0')}-${String(np.day).padStart(2,'0')}`;
+          if (np.hour !== null) {
+            document.getElementById('inp-time').value =
+              `${String(np.hour).padStart(2,'0')}:${String(np.minute || 0).padStart(2,'0')}`;
+          }
+          _doRender(np);
+        });
+        document.getElementById('copy-wrap').style.display = 'block';
+        document.getElementById('copy-btn').onclick = () => {
+          const name  = document.getElementById('inp-name').value.trim() || 'Seeker';
+          const focus = document.getElementById('inp-focus').value.trim() || '';
+          navigator.clipboard.writeText(generatePromptText(chart, name, focus))
+            .then(() => {
+              document.getElementById('copy-btn').textContent = '✅ Copied!';
+              setTimeout(() => { document.getElementById('copy-btn').textContent = '📋 Copy Prompt'; }, 2000);
+            })
+            .catch(() => alert('Clipboard access denied. Try HTTPS or localhost.'));
+        };
+      } catch (e) {
+        document.getElementById('result').innerHTML = `<p style="color:red">Error: ${e.message}</p>`;
+        console.error(e);
+      }
+    }
+
     document.getElementById('calc-btn').addEventListener('click', function() {
       const dateVal = document.getElementById('inp-date').value;
       const timeVal = document.getElementById('inp-time').value;
@@ -64,24 +114,7 @@
       if (!dateVal || (!timeVal && !noHour)) { alert('Please enter date and time.'); return; }
       const [year, month, day] = dateVal.split('-').map(Number);
       const [hour, minute] = noHour ? [null, null] : timeVal.split(':').map(Number);
-      try {
-        const chart = computeChart(year, month, day, hour, minute, sex);
-        renderChart(document.getElementById('result'), chart);
-        document.getElementById('copy-wrap').style.display = 'block';
-        document.getElementById('copy-btn').onclick = () => {
-          const name  = document.getElementById('inp-name').value.trim() || 'Seeker';
-          const focus = document.getElementById('inp-focus').value.trim() || '';
-          const text  = generatePromptText(chart, name, focus);
-          navigator.clipboard.writeText(text).then(() => {
-            document.getElementById('copy-btn').textContent = '✅ Copied!';
-            setTimeout(() => { document.getElementById('copy-btn').textContent = '📋 Copy Prompt'; }, 2000);
-          }).catch(() => alert('Clipboard access denied. Try HTTPS or localhost.'));
-        };
-      } catch (e) {
-        document.getElementById('result').innerHTML =
-          `<p style="color:red">Error: ${e.message}</p>`;
-        console.error(e);
-      }
+      _doRender({year, month, day, hour, minute, sex});
     });
 
     document.getElementById('no-hour').addEventListener('change', function() {

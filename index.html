@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BaZi Calculator 八字</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <h1>BaZi Calculator 八字命盘</h1>
+
+  <form id="input-form" onsubmit="return false;">
+    <label>Date of Birth
+      <input type="date" id="inp-date" required value="1985-09-20">
+    </label>
+    <label>Time of Birth
+      <input type="time" id="inp-time" required value="10:00">
+    </label>
+    <label>Name (optional)
+      <input type="text" id="inp-name" placeholder="Optional">
+    </label>
+    <label>Sex
+      <div class="sex-group">
+        <label><input type="radio" name="sex" value="M" checked> Male</label>
+        <label><input type="radio" name="sex" value="F"> Female</label>
+      </div>
+    </label>
+    <label style="grid-column:1/-1">Focus / Question (optional)
+      <textarea id="inp-focus" rows="2" placeholder="What would you like to ask?" style="resize:vertical;padding:7px 10px;border:1px solid #ccc;border-radius:5px;font-size:.9rem;font-family:inherit"></textarea>
+    </label>
+    <button type="submit" id="calc-btn">Calculate 排命盘</button>
+  </form>
+
+  <div id="jie-warning">
+    ⚠ Birth time is near a solar term boundary (節). The pillar may shift by one.
+    Please verify the exact birth time.
+  </div>
+
+  <div id="copy-wrap" style="display:none">
+    <button id="copy-btn">📋 Copy Prompt</button>
+  </div>
+
+  <div id="result"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/tables.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/derived.js"></script>
+  <script src="js/luck.js"></script>
+  <script src="js/shensha.js"></script>
+  <script src="js/stars.js"></script>
+  <script src="js/interactions.js"></script>
+  <script src="js/prompt.js"></script>
+  <script src="js/render.js"></script>
+  <script>
+    document.getElementById('calc-btn').addEventListener('click', function() {
+      const dateVal = document.getElementById('inp-date').value;
+      const timeVal = document.getElementById('inp-time').value;
+      const sex = document.querySelector('input[name="sex"]:checked').value;
+      if (!dateVal || !timeVal) { alert('Please enter date and time.'); return; }
+      const [year, month, day] = dateVal.split('-').map(Number);
+      const [hour, minute] = timeVal.split(':').map(Number);
+      try {
+        const chart = computeChart(year, month, day, hour, minute, sex);
+        renderChart(document.getElementById('result'), chart);
+        document.getElementById('copy-wrap').style.display = 'block';
+        document.getElementById('copy-btn').onclick = () => {
+          const name  = document.getElementById('inp-name').value.trim() || 'Seeker';
+          const focus = document.getElementById('inp-focus').value.trim() || '';
+          const text  = generatePromptText(chart, name, focus);
+          navigator.clipboard.writeText(text).then(() => {
+            document.getElementById('copy-btn').textContent = '✅ Copied!';
+            setTimeout(() => { document.getElementById('copy-btn').textContent = '📋 Copy Prompt'; }, 2000);
+          }).catch(() => alert('Clipboard access denied. Try HTTPS or localhost.'));
+        };
+      } catch (e) {
+        document.getElementById('result').innerHTML =
+          `<p style="color:red">Error: ${e.message}</p>`;
+        console.error(e);
+      }
+    });
+
+    // Test mode: ?test=1
+    if (location.search.includes('test=1')) {
+      const cases = [
+        { y:1985, mo:9, d:20, h:10, mi:0, sex:'M', label:'1985-09-20 10:00 M', expYear:'乙丑', expDay:'壬戌', expLP0:'甲申' },
+        { y:1992, mo:3, d:15, h:23, mi:30, sex:'F', label:'1992-03-15 23:30 F (day roll)', expYear:'壬申', expDay:'辛卯', expLP0:'壬寅' },
+        { y:1999, mo:1, d:15, h:12, mi:0, sex:'M', label:'1999-01-15 12:00 M (pre-LiChun)', expYear:'戊寅', expDay:'丁卯', expLP0:'丙寅' },
+      ];
+      const rows = cases.map(c => {
+        const chart = computeChart(c.y, c.mo, c.d, c.h, c.mi, c.sex);
+        const lp0 = luckPillars(chart, 1)[0];
+        return {
+          case: c.label,
+          yearGZ: chart.year.stem + chart.year.branch,
+          yearOK: c.expYear ? chart.year.stem + chart.year.branch === c.expYear : '–',
+          dayGZ: chart.day.stem + chart.day.branch,
+          dayOK: c.expDay ? chart.day.stem + chart.day.branch === c.expDay : '–',
+          lp0GZ: lp0.stem + lp0.branch,
+          lp0OK: c.expLP0 ? lp0.stem + lp0.branch === c.expLP0 : '–',
+        };
+      });
+      console.table(rows);
+      alert('Test results in console (F12).');
+    }
+  </script>
+</body>
+</html>

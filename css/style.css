@@ -1,0 +1,261 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f5f5f5;
+  color: #222;
+  padding: 16px;
+}
+
+h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
+
+/* ── Input form ── */
+#input-form {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 680px;
+  margin: 0 auto 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.12);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+  align-items: end;
+}
+#input-form label { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; font-weight: 600; }
+#input-form input, #input-form select {
+  padding: 7px 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: .95rem;
+}
+.sex-group { display: flex; gap: 16px; align-items: center; padding: 7px 0; }
+.sex-group label { flex-direction: row; align-items: center; gap: 6px; font-weight: 400; }
+#calc-btn {
+  grid-column: 1 / -1;
+  padding: 10px;
+  background: #3a6bcc;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background .15s;
+}
+#calc-btn:hover { background: #2a55b0; }
+
+/* ── Jie warning ── */
+#jie-warning {
+  background: #fff8c5;
+  border: 1px solid #e8c400;
+  border-radius: 6px;
+  padding: 10px 16px;
+  max-width: 860px;
+  margin: 0 auto 16px;
+  font-size: .9rem;
+  display: none;
+}
+
+/* ── Result wrapper ── */
+#result { max-width: 860px; margin: 0 auto; }
+#result section { margin-bottom: 24px; }
+#result h2 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; letter-spacing: .03em; }
+
+/* ── Pillar grid (4 columns Hour|Day|Month|Year) ── */
+.pillar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.pillar-col { display: flex; flex-direction: column; gap: 6px; }
+
+/* Header label (Hour / Day / Month / Year) */
+.pillar-label {
+  text-align: center;
+  font-size: .75rem;
+  font-weight: 700;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* HS / EB boxes */
+.gz-box {
+  border-radius: 6px;
+  text-align: center;
+  padding: 6px 4px;
+  background: #e8e8e8;
+}
+.gz-box .zh { font-size: 1.8rem; line-height: 1; }
+.gz-box .en { font-size: .7rem; color: #444; margin-top: 2px; }
+.gz-box .ten-god { font-size: .68rem; color: #333; font-style: italic; }
+.gz-box .stage  { font-size: .68rem; color: #555; }
+.gz-box .nayin  { font-size: .65rem; color: #666; }
+
+/* Hidden stems row */
+.hhs-row {
+  display: flex;
+  gap: 4px;
+}
+.hhs-chip {
+  flex: 1;
+  border-radius: 4px;
+  padding: 3px 2px;
+  text-align: center;
+  background: #e8e8e8;
+  font-size: .8rem;
+}
+.hhs-chip .zh { font-size: 1rem; }
+.hhs-chip .ten-god { font-size: .6rem; color: #333; }
+
+/* Void label */
+.void-label { font-size: .65rem; color: #888; text-align: center; }
+
+/* Shensha tags */
+.shensha-tags { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; }
+.shensha-tag {
+  font-size: .58rem;
+  padding: 2px 5px;
+  background: #e0e0f0;
+  border-radius: 3px;
+  color: #334;
+  white-space: nowrap;
+}
+
+/* ── Element balance bar ── */
+.element-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.element-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: .85rem;
+  font-weight: 600;
+}
+.element-chip .count { font-size: 1rem; font-weight: 700; }
+
+/* ── Luck pillar row ── */
+.luck-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.luck-card {
+  min-width: 86px;
+  flex: 0 0 86px;
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  background: #fff;
+  cursor: pointer;
+  transition: box-shadow .15s;
+}
+.luck-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+.luck-card.active { outline: 2px solid #3a6bcc; outline-offset: 0; }
+.luck-card .lc-hs {
+  text-align: center;
+  padding: 6px 4px 2px;
+  font-size: 1.4rem;
+}
+.luck-card .lc-eb {
+  text-align: center;
+  padding: 2px 4px 6px;
+  font-size: 1.4rem;
+}
+.luck-card .lc-age {
+  text-align: center;
+  font-size: .65rem;
+  color: #555;
+  padding: 3px 4px;
+  background: #f0f0f0;
+  border-top: 1px solid #e0e0e0;
+}
+.luck-card .lc-year {
+  text-align: center;
+  font-size: .6rem;
+  color: #777;
+  padding: 2px 4px 4px;
+  background: #f0f0f0;
+}
+
+/* ── Annual table (collapsible) ── */
+.annual-wrap { display: none; margin-top: 12px; }
+.annual-wrap.open { display: block; }
+.annual-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .82rem;
+}
+.annual-table th {
+  background: #e8e8f4;
+  padding: 5px 8px;
+  text-align: center;
+  font-weight: 700;
+  font-size: .75rem;
+}
+.annual-table td {
+  padding: 4px 8px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+.annual-table tr:hover td { background: #f5f5ff; }
+.gz-cell { font-size: 1rem; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  #input-form { grid-template-columns: 1fr; }
+  .pillar-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Stars row ── */
+.stars-row { display:flex; flex-wrap:wrap; gap:3px; margin-top:5px; padding:2px 0; }
+.star-name {
+  background:#fffbe6; border:1px solid #e8c400; border-radius:3px;
+  font-size:.58rem; padding:1px 4px; color:#333; white-space:nowrap;
+}
+
+/* ── Interactions ── */
+.interactions-row { margin-top:6px; font-size:.62rem; color:#222; }
+.int-title { font-weight:700; font-size:.65rem; margin-bottom:2px; }
+.int-item { padding-left:6px; line-height:1.6; color:#444; }
+
+/* ── Luck interactions (inside expanded luck card) ── */
+.luck-interactions {
+  padding:8px 10px; font-size:.72rem;
+  border-bottom:1px solid #eee; background:#fafafa;
+}
+.luck-interactions .int-title { font-weight:700; margin:4px 0 2px; }
+.luck-interactions .int-item  { padding-left:6px; line-height:1.6; color:#555; }
+.luck-interactions .stars-row { margin-top:2px; }
+
+/* ── Annual row selection ── */
+.annual-table tr { cursor: pointer; }
+.annual-table tr.selected td { background: #e8f0ff; }
+.annual-table tr.selected td:first-child { border-left: 3px solid #3a6bcc; }
+
+/* ── Annual year panel ── */
+#annual-panel { display:none; margin-bottom:24px; background:#fff; border-radius:8px; padding:14px 16px; box-shadow:0 1px 4px rgba(0,0,0,.1); }
+#annual-panel.visible { display:block; }
+#annual-panel h3 { font-size:.95rem; font-weight:700; margin-bottom:10px; color:#222; }
+.annual-pillar-box {
+  display:inline-flex; flex-direction:column; align-items:center;
+  border-radius:6px; padding:6px 12px; margin-bottom:8px;
+  min-width:72px; text-align:center; border:1px solid rgba(0,0,0,.15);
+}
+.annual-pillar-box .zh { font-size:1.6rem; line-height:1.2; }
+.annual-pillar-box .en { font-size:.68rem; color:#555; margin-top:2px; }
+
+/* Annual year ints block inside expanded luck card */
+.annual-year-ints { border-top:1px solid #eee; margin-top:4px; }
+
+/* ── Copy button ── */
+#copy-wrap { max-width:860px; margin:0 auto 12px; }
+#copy-btn {
+  padding:8px 18px; background:#3a6bcc; color:#fff;
+  border:none; border-radius:6px; font-size:.9rem;
+  cursor:pointer; font-weight:600; transition:background .15s;
+}
+#copy-btn:hover { background:#2a55b0; }

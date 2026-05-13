@@ -123,6 +123,7 @@
   // Public: stars for a birth chart pillar (index 0=year…3=hour)
   window.starsForPillar = function(pillarIdx, chart) {
     const p = chart.pillars[pillarIdx];
+    if (!p) return [];
     return _starsForBranchAndStem(p.branch, p.stem, chart);
   };
 

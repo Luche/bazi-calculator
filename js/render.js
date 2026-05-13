@@ -39,6 +39,21 @@ function _renderInteractionsRow(items, title) {
 
 function buildPillarCol(pillarIdx, chart, derivedData, stars, interactions, labelText) {
   const p = chart.pillars[pillarIdx];
+
+  if (!p) {
+    const col = document.createElement('div');
+    col.className = 'pillar-col';
+    const lbl = document.createElement('div');
+    lbl.className = 'pillar-label';
+    lbl.textContent = labelText;
+    col.appendChild(lbl);
+    const box = document.createElement('div');
+    box.className = 'gz-box unknown-pillar';
+    box.innerHTML = '<div class="zh" style="color:#bbb;font-size:1.2rem">?</div><div class="en" style="color:#bbb">Unknown</div>';
+    col.appendChild(box);
+    return col;
+  }
+
   const tg = derivedData.stemTenGods[pillarIdx];
   const stage = derivedData.twelveStages[pillarIdx];
   const ny = derivedData.naYin[pillarIdx];

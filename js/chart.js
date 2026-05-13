@@ -64,15 +64,22 @@ function _checkJieBoundary(dobSec) {
 }
 
 function computeChart(year, month, day, hour, minute, sex) {
-  const dob = new Date(year, month - 1, day, hour, minute);
+  // hour === null means unknown birth time — omit the hour pillar
+  const h = hour !== null ? hour : 12;
+  const m = hour !== null ? minute : 0;
+  const dob = new Date(year, month - 1, day, h, m);
   const dobSec = _dateSec(dob);
 
   const yearP  = _yearPillar(dobSec, year);
   const monthP = _monthPillar(dobSec, yearP.stem);
-  const dayP   = _dayPillar(year, month, day, hour);
-  const hBranch = _hourBranch(hour);
-  const hStem   = T.hourStem(dayP.stem, hBranch);
-  const hourP   = { stem: hStem, branch: hBranch };
+  const dayP   = _dayPillar(year, month, day, h);
+
+  let hourP = null;
+  if (hour !== null) {
+    const hBranch = _hourBranch(hour);
+    const hStem   = T.hourStem(dayP.stem, hBranch);
+    hourP = { stem: hStem, branch: hBranch };
+  }
 
   return {
     year: yearP, month: monthP, day: dayP, hour: hourP,

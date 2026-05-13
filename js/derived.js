@@ -1,34 +1,35 @@
 // Secondary calculations. Depends on tables.js and chart.js.
 
 function stemTenGods(chart) {
-  return chart.pillars.map(p => T.tenGodName(chart.dm, p.stem));
+  return chart.pillars.map(p => p ? T.tenGodName(chart.dm, p.stem) : '—');
 }
 
 function hiddenStems(chart) {
-  return chart.pillars.map(p => T.HIDDEN_STEMS[p.branch]);
+  return chart.pillars.map(p => p ? T.HIDDEN_STEMS[p.branch] : []);
 }
 
 function hiddenStemTenGods(chart) {
   return chart.pillars.map(p =>
-    T.HIDDEN_STEMS[p.branch].map(hs => T.tenGodName(chart.dm, hs))
+    p ? T.HIDDEN_STEMS[p.branch].map(hs => T.tenGodName(chart.dm, hs)) : []
   );
 }
 
 function twelveStages(chart) {
-  return chart.pillars.map(p => T.twelveStage(chart.dm, p.branch));
+  return chart.pillars.map(p => p ? T.twelveStage(chart.dm, p.branch) : '—');
 }
 
 function naYin(chart) {
-  return chart.pillars.map(p => T.nayin(p.stem, p.branch));
+  return chart.pillars.map(p => p ? T.nayin(p.stem, p.branch) : '—');
 }
 
 function voidsPerPillar(chart) {
-  return chart.pillars.map(p => T.voidBranches(p.stem, p.branch));
+  return chart.pillars.map(p => p ? T.voidBranches(p.stem, p.branch) : ['—', '—']);
 }
 
 function elementBalance(chart) {
   const counts = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
   for (const p of chart.pillars) {
+    if (!p) continue;
     counts[T.STEM_ELEMENT[p.stem]]++;
     counts[T.BRANCH_ELEMENT[p.branch]]++;
   }

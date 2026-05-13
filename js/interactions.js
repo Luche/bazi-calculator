@@ -182,7 +182,7 @@
   window.pillarsInteractionList = function(chart) {
     const ps = chart.pillars; // [year, month, day, hour]
     const n = ps.length;      // 4
-    const allBranches = ps.map(p => p.branch);
+    const allBranches = ps.filter(p => p).map(p => p.branch);
     const result = ps.map(() => []);
 
     for (let i = 0; i < n; i++) {
@@ -190,12 +190,15 @@
       const seen = new Set();
       const push = (i, s) => { if (s && !seen.has(s)) { seen.add(s); result[i].push(s); } };
 
+      if (!pi) continue;
+
       // HS+HHS with own branch hidden stems (self-pillar combo)
       for (const s of _hsHhsCombo(pi.stem, T.HIDDEN_STEMS[pi.branch])) push(i, s);
 
       for (let j = 0; j < n; j++) {
         if (j === i) continue;
         const pj = ps[j];
+        if (!pj) continue;
         const adjacent = Math.abs(i - j) === 1;
 
         // HS interaction
@@ -218,7 +221,7 @@
 
   // Returns string[] — all interactions of a luck pillar with the 4 birth chart pillars
   window.luckInteractionList = function(luckPillar, chart) {
-    const ps = chart.pillars;
+    const ps = chart.pillars.filter(p => p);
     const lhs = luckPillar.stem;
     const leb = luckPillar.branch;
     const seen = new Set();

@@ -10,15 +10,6 @@
   <h1>BaZi Calculator 八字命盘</h1>
 
   <form id="input-form" onsubmit="return false;">
-    <label>Date of Birth
-      <input type="date" id="inp-date" required>
-    </label>
-    <label>Time of Birth
-      <input type="time" id="inp-time" required>
-      <label style="font-weight:400;flex-direction:row;gap:6px;align-items:center;margin-top:5px;font-size:.82rem">
-        <input type="checkbox" id="no-hour"> Unknown / No hour
-      </label>
-    </label>
     <label>Name (optional)
       <input type="text" id="inp-name" placeholder="Optional">
     </label>
@@ -27,6 +18,36 @@
         <label><input type="radio" name="sex" value="M" checked> Male</label>
         <label><input type="radio" name="sex" value="F"> Female</label>
       </div>
+    </label>
+    <div class="dob-row">
+      <label>Hour
+        <input type="time" id="inp-time" required>
+      </label>
+      <label>Day
+        <input type="number" id="inp-day" min="1" max="31" required>
+      </label>
+      <label>Month
+        <select id="inp-month" required>
+          <option value="1">Jan</option>
+          <option value="2">Feb</option>
+          <option value="3">Mar</option>
+          <option value="4">Apr</option>
+          <option value="5">May</option>
+          <option value="6">Jun</option>
+          <option value="7">Jul</option>
+          <option value="8">Aug</option>
+          <option value="9">Sep</option>
+          <option value="10">Oct</option>
+          <option value="11">Nov</option>
+          <option value="12">Dec</option>
+        </select>
+      </label>
+      <label>Year
+        <input type="number" id="inp-year" min="1900" max="2100" required>
+      </label>
+    </div>
+    <label class="no-hour-row">
+      <input type="checkbox" id="no-hour"> Unknown / No hour
     </label>
     <label style="grid-column:1/-1">Focus / Question (optional)
       <textarea id="inp-focus" rows="2" placeholder="What would you like to ask?" style="resize:vertical;padding:7px 10px;border:1px solid #ccc;border-radius:5px;font-size:.9rem;font-family:inherit"></textarea>
@@ -81,8 +102,9 @@
         const chart = computeChart(year, month, day, hour, minute !== null ? minute : 0, sex);
         renderChart(document.getElementById('result'), chart, (component, delta) => {
           const np = _adjustDate(_navParams, component, delta);
-          document.getElementById('inp-date').value =
-            `${np.year}-${String(np.month).padStart(2,'0')}-${String(np.day).padStart(2,'0')}`;
+          document.getElementById('inp-day').value = np.day;
+          document.getElementById('inp-month').value = np.month;
+          document.getElementById('inp-year').value = np.year;
           if (np.hour !== null) {
             document.getElementById('inp-time').value =
               `${String(np.hour).padStart(2,'0')}:${String(np.minute || 0).padStart(2,'0')}`;
@@ -107,12 +129,13 @@
     }
 
     function _readFormAndRender() {
-      const dateVal = document.getElementById('inp-date').value;
+      const day   = Number(document.getElementById('inp-day').value);
+      const month = Number(document.getElementById('inp-month').value);
+      const year  = Number(document.getElementById('inp-year').value);
       const timeVal = document.getElementById('inp-time').value;
       const sex = document.querySelector('input[name="sex"]:checked').value;
       const noHour = document.getElementById('no-hour').checked;
-      if (!dateVal || (!timeVal && !noHour)) { alert('Please enter date and time.'); return; }
-      const [year, month, day] = dateVal.split('-').map(Number);
+      if (!day || !month || !year || (!timeVal && !noHour)) { alert('Please enter date and time.'); return; }
       const [hour, minute] = noHour ? [null, null] : timeVal.split(':').map(Number);
       _doRender({year, month, day, hour, minute, sex});
     }
@@ -129,8 +152,9 @@
     (function () {
       const now = new Date();
       const pad = n => String(n).padStart(2, '0');
-      document.getElementById('inp-date').value =
-        `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+      document.getElementById('inp-day').value = now.getDate();
+      document.getElementById('inp-month').value = now.getMonth() + 1;
+      document.getElementById('inp-year').value = now.getFullYear();
       document.getElementById('inp-time').value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
       _readFormAndRender();
     })();

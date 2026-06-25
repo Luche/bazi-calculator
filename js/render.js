@@ -234,12 +234,12 @@ function buildLuckRow(luckArr, chart) {
 
     const hsDiv = document.createElement('div');
     hsDiv.className = 'lc-hs';
-    hsDiv.textContent = lp.stem;
+    hsDiv.innerHTML = `<div class="zh">${lp.stem}</div><div class="ten-god">${T.tenGodName(chart.dm, lp.stem)}</div>`;
     _colorStem(hsDiv, lp.stem);
 
     const ebDiv = document.createElement('div');
     ebDiv.className = 'lc-eb';
-    ebDiv.textContent = lp.branch;
+    ebDiv.innerHTML = `<div class="zh">${lp.branch}</div><div class="en">${T.BRANCH_ANIMAL[lp.branch]}</div>`;
     _colorBranch(ebDiv, lp.branch);
 
     const ageDiv = document.createElement('div');

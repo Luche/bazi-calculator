@@ -74,8 +74,9 @@ Output the entire report at once, without asking the user to continue.`;
     const todayStr = now.toISOString().slice(0, 10);
     const dm = chart.dm;
 
-    const stemPy   = chart.pillars.map(p => T.STEM_PY[p.stem]);
-    const branchPy = chart.pillars.map(p => T.BRANCH_PY[p.branch]);
+    const knownPillars = chart.pillars.filter(p => p);
+    const stemPy   = knownPillars.map(p => T.STEM_PY[p.stem]);
+    const branchPy = knownPillars.map(p => T.BRANCH_PY[p.branch]);
     const hidChars = hiddenStems(chart).map(arr => arr.join(', ')).join('; ');
     const stemTg   = stemTenGods(chart);
     const hidTg    = hiddenStemTenGods(chart).flat();
@@ -123,9 +124,13 @@ Output the entire report at once, without asking the user to continue.`;
     const boundaryWarn = chart.nearJieBoundary
       ? '\n\n⚠️ Birth time is within 1 hour of a Solar Term (Jie) boundary; verify against an almanac before relying on the Year/Month pillar above.'
       : '';
+    const hourWarn = !chart.hour
+      ? '\n\n⚠️ Birth hour is unknown. The Hour Pillar is omitted from this chart — do not infer or fabricate it, and caveat any analysis that would normally depend on the Hour Pillar.'
+      : '';
+    const pillarLabel = chart.hour ? 'Year -> Month -> Day -> Hour' : 'Year -> Month -> Day (Hour unknown)';
 
     const userBlock =
-`BaZi chart for ${name} (Year -> Month -> Day -> Hour):
+`BaZi chart for ${name} (${pillarLabel}):
 Gender: ${sexLabel} Heavenly Stems: ${stemPy.join(', ')} Earthly Branches: ${branchPy.join(', ')} Hidden Stems: ${hidChars} Ten Gods (Heavenly Stems): ${stemTg.join(', ')} Ten Gods (Earthly Branches): ${hidTg.join(', ')} Na Yin: ${nayin.join(', ')} Void (Kong Wang): ${voids.join(', ')} Stage (Di Shi): ${stages.join(', ')} Gods & Shensha:
 ${ssLines}
 
@@ -146,7 +151,7 @@ ${annualBlock(nextLP)}
 
 Current Time Info
 
-Gregorian Today: ${todayStr}.${boundaryWarn}`;
+Gregorian Today: ${todayStr}.${boundaryWarn}${hourWarn}`;
 
     return `System\n\n${sysText}\n\nUser\n\n${userBlock}`;
   };

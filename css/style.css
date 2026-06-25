@@ -20,7 +20,7 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px 16px;
-  align-items: end;
+  align-items: start;
 }
 #input-form label { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; font-weight: 600; }
 #input-form input, #input-form select {
@@ -144,8 +144,8 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
   padding-bottom: 4px;
 }
 .luck-card {
-  min-width: 86px;
-  flex: 0 0 86px;
+  min-width: 96px;
+  flex: 0 0 96px;
   border-radius: 7px;
   overflow: hidden;
   border: 1px solid #ddd;
@@ -158,13 +158,18 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 .luck-card .lc-hs {
   text-align: center;
   padding: 6px 4px 2px;
-  font-size: 1.4rem;
 }
 .luck-card .lc-eb {
   text-align: center;
   padding: 2px 4px 6px;
-  font-size: 1.4rem;
 }
+.luck-card .lc-hs .zh, .luck-card .lc-eb .zh { font-size: 1.4rem; line-height: 1; }
+.luck-card .lc-hs .ten-god, .luck-card .lc-eb .en {
+  font-size: .6rem;
+  color: #444;
+  margin-top: 2px;
+}
+.luck-card .lc-hs .ten-god { font-style: italic; }
 .luck-card .lc-age {
   text-align: center;
   font-size: .65rem;
@@ -207,7 +212,15 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 /* ── Responsive ── */
 @media (max-width: 600px) {
   #input-form { grid-template-columns: 1fr; }
-  .pillar-grid { grid-template-columns: repeat(2, 1fr); }
+  .pillar-grid { gap: 4px; }
+  .gz-box { padding: 4px 2px; }
+  .gz-box .zh { font-size: 1.3rem; }
+  .gz-box .en, .gz-box .ten-god, .gz-box .stage, .gz-box .nayin { font-size: .58rem; }
+  .hhs-chip { padding: 2px 1px; }
+  .hhs-chip .zh { font-size: .8rem; }
+  .hhs-chip .ten-god { font-size: .52rem; }
+  .pillar-label { font-size: .65rem; }
+  .void-label, .star-name, .int-item, .int-title { font-size: .54rem; }
 }
 
 /* ── Stars row ── */

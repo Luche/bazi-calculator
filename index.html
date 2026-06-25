@@ -11,10 +11,10 @@
 
   <form id="input-form" onsubmit="return false;">
     <label>Date of Birth
-      <input type="date" id="inp-date" required value="1985-09-20">
+      <input type="date" id="inp-date" required>
     </label>
     <label>Time of Birth
-      <input type="time" id="inp-time" required value="10:00">
+      <input type="time" id="inp-time" required>
       <label style="font-weight:400;flex-direction:row;gap:6px;align-items:center;margin-top:5px;font-size:.82rem">
         <input type="checkbox" id="no-hour"> Unknown / No hour
       </label>
@@ -106,7 +106,7 @@
       }
     }
 
-    document.getElementById('calc-btn').addEventListener('click', function() {
+    function _readFormAndRender() {
       const dateVal = document.getElementById('inp-date').value;
       const timeVal = document.getElementById('inp-time').value;
       const sex = document.querySelector('input[name="sex"]:checked').value;
@@ -115,13 +115,25 @@
       const [year, month, day] = dateVal.split('-').map(Number);
       const [hour, minute] = noHour ? [null, null] : timeVal.split(':').map(Number);
       _doRender({year, month, day, hour, minute, sex});
-    });
+    }
+
+    document.getElementById('calc-btn').addEventListener('click', _readFormAndRender);
 
     document.getElementById('no-hour').addEventListener('change', function() {
       const timeInput = document.getElementById('inp-time');
       timeInput.disabled = this.checked;
       timeInput.style.opacity = this.checked ? '0.4' : '1';
     });
+
+    // Default to today's date/time and render immediately on page load.
+    (function () {
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      document.getElementById('inp-date').value =
+        `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+      document.getElementById('inp-time').value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      _readFormAndRender();
+    })();
 
     // Test mode: ?test=1
     if (location.search.includes('test=1')) {

@@ -55,8 +55,14 @@ const T = (() => {
 
   const EXCEL_CODE_TO_NAME = {
     "PR":"Companion","RW":"Competing Wealth","EG":"Eating God","HO":"Hurting Officer",
-    "PW":"Proper Wealth","AW":"Indirect Wealth","PO":"Proper Officer","AO":"Seven Killings",
+    "PW":"Proper Wealth","AW":"Indirect Wealth","PO":"Proper Officer","AO":"Qi Sha",
     "PS":"Proper Resource","AS":"Indirect Resource",
+  };
+
+  const TENGOD_ABBR = {
+    "PR":"C","RW":"CW","EG":"EG","HO":"HO",
+    "PW":"PW","AW":"IW","PO":"PO","AO":"QS",
+    "PS":"PR","AS":"IR",
   };
 
   const _STAGES_MATRIX = {
@@ -105,6 +111,17 @@ const T = (() => {
     "壬戌":"Great Sea Water","癸亥":"Great Sea Water",
   };
 
+  // Nayin element by 60-jiazi pair index. Positional, not name-parsed:
+  // "Metal Foil" (壬寅/癸卯, pair 19) leads with its element word, so suffix matching breaks.
+  const _NAYIN_ELEMENT_BY_PAIR = [
+    'Metal','Fire','Wood','Earth','Metal','Fire','Water','Earth','Metal','Wood',
+    'Water','Earth','Fire','Wood','Water','Metal','Fire','Wood','Earth','Metal',
+    'Fire','Water','Earth','Metal','Wood','Water','Earth','Fire','Wood','Water',
+  ];
+
+  const STAGE_ORDER = ['Birth','Bath','Attire','Official','Peak','Weak','Sick',
+                       'Death','Tomb','Extinction','Womb','Nourish'];
+
   const MONTH_STEM_FIRST = {
     "甲":"丙","己":"丙","乙":"戊","庚":"戊","丙":"庚","辛":"庚",
     "丁":"壬","壬":"壬","戊":"甲","癸":"甲",
@@ -140,11 +157,20 @@ const T = (() => {
   function tenGodName(dm, stem) {
     return EXCEL_CODE_TO_NAME[tenGod(dm, stem)];
   }
+  function tenGodAbbr(dm, stem) {
+    return TENGOD_ABBR[tenGod(dm, stem)];
+  }
   function twelveStage(dm, branch) {
     return _STAGES_MATRIX[dm][BRANCHES.indexOf(branch)];
   }
   function nayin(stem, branch) {
     return NAYIN[stem + branch];
+  }
+  function nayinElement(stem, branch) {
+    return _NAYIN_ELEMENT_BY_PAIR[Math.floor(JIAZI_INDEX[stem + branch] / 2)];
+  }
+  function stageNumber(stage) {
+    return STAGE_ORDER.indexOf(stage) + 1;
   }
   function hourStem(dayStem, hourBranch) {
     const first = HOUR_STEM_FIRST[dayStem];
@@ -165,8 +191,9 @@ const T = (() => {
   return {
     STEMS, BRANCHES, STEM_PY, BRANCH_PY, BRANCH_ANIMAL,
     STEM_ELEMENT, BRANCH_ELEMENT, STEM_YANG, BRANCH_YANG,
-    HOUR_BRANCHES, HIDDEN_STEMS, NAYIN, MONTH_STEM_FIRST, HOUR_STEM_FIRST,
+    HOUR_BRANCHES, HIDDEN_STEMS, NAYIN, STAGE_ORDER, MONTH_STEM_FIRST, HOUR_STEM_FIRST,
     ELEMENT_COLORS, JIAZI_LIST, JIAZI_INDEX, JIAZI_PY,
-    jiazi, tenGod, tenGodName, twelveStage, nayin, hourStem, monthStem, voidBranches,
+    jiazi, tenGod, tenGodName, tenGodAbbr, twelveStage, nayin, nayinElement, stageNumber,
+    hourStem, monthStem, voidBranches,
   };
 })();

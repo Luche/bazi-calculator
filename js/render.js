@@ -48,41 +48,102 @@ function _buildNavRow(navInfo) {
   const btnMinus = document.createElement('button');
   btnMinus.className = 'nav-btn';
   btnMinus.textContent = '−';
-  btnMinus.onclick = e => { e.stopPropagation(); navInfo.onNav(navInfo.component, -1); };
   const valSpan = document.createElement('span');
   valSpan.className = 'nav-val';
-  valSpan.textContent = navInfo.displayValue;
   const btnPlus = document.createElement('button');
   btnPlus.className = 'nav-btn';
   btnPlus.textContent = '+';
-  btnPlus.onclick = e => { e.stopPropagation(); navInfo.onNav(navInfo.component, +1); };
+  if (navInfo.disabled) {
+    valSpan.textContent = '?';
+    btnMinus.disabled = true;
+    btnPlus.disabled = true;
+  } else {
+    valSpan.textContent = navInfo.displayValue;
+    btnMinus.onclick = e => { e.stopPropagation(); navInfo.onNav(navInfo.component, -1); };
+    btnPlus.onclick = e => { e.stopPropagation(); navInfo.onNav(navInfo.component, +1); };
+  }
   navRow.append(btnMinus, valSpan, btnPlus);
   return navRow;
 }
 
-function buildPillarCol(pillarIdx, chart, derivedData, stars, interactions, labelText, navInfo) {
+// The five stacked cells shared by main pillars and luck pillars:
+// HS box, EB box, hidden-stems row, nayin cell, qi-phase line.
+// tenGodLabel overrides the HS ten-god text (used for the Day Master).
+function _buildPillarCells(stem, branch, dm, tenGodLabel) {
+  const tg = tenGodLabel || T.tenGodName(dm, stem);
+  const stage = T.twelveStage(dm, branch);
+  const ny = T.nayin(stem, branch);
+  const hhs = T.HIDDEN_STEMS[branch];
+
+  // HS box
+  const hsBox = document.createElement('div');
+  hsBox.className = 'gz-box';
+  _colorStem(hsBox, stem);
+  hsBox.innerHTML = `<div class="zh">${stem}</div>
+    <div class="en">${T.STEM_PY[stem]}</div>
+    <div class="ten-god">${tg}</div>`;
+
+  // EB box
+  const ebBox = document.createElement('div');
+  ebBox.className = 'gz-box';
+  _colorBranch(ebBox, branch);
+  ebBox.innerHTML = `<div class="zh">${branch}</div>
+    <div class="py">${T.BRANCH_PY[branch]}</div>
+    <div class="en">${T.BRANCH_ANIMAL[branch]}</div>`;
+
+  // Hidden stems
+  const hhsRow = document.createElement('div');
+  hhsRow.className = 'hhs-row';
+  hhs.forEach(hs => {
+    const chip = document.createElement('div');
+    chip.className = 'hhs-chip';
+    _colorStem(chip, hs);
+    chip.innerHTML = `<div class="zh">${hs}</div><div class="ten-god">${T.tenGodAbbr(dm, hs)}</div>`;
+    hhsRow.appendChild(chip);
+  });
+
+  // Nayin
+  const nayinCell = document.createElement('div');
+  nayinCell.className = 'nayin-cell';
+  applyElementColor(nayinCell, T.nayinElement(stem, branch));
+  nayinCell.textContent = ny;
+
+  // Qi phase (DM's twelve stages)
+  const qiEl = document.createElement('div');
+  qiEl.className = 'qi-phase';
+  qiEl.textContent = `${T.stageNumber(stage)}. ${stage}`;
+
+  return [hsBox, ebBox, hhsRow, nayinCell, qiEl];
+}
+
+function _buildUnknownPillarCells() {
+  // Unknown hour: keep every row so the column stays the same shape/height
+  // as the other three, just filled with dashed placeholders.
+  const hsBox = document.createElement('div');
+  hsBox.className = 'gz-box unknown-cell';
+  hsBox.textContent = '?';
+
+  const ebBox = document.createElement('div');
+  ebBox.className = 'gz-box unknown-cell';
+  ebBox.textContent = '?';
+
+  const hhsRow = document.createElement('div');
+  hhsRow.className = 'hhs-row';
+  const chip = document.createElement('div');
+  chip.className = 'hhs-chip unknown-cell';
+  hhsRow.appendChild(chip);
+
+  const nayinCell = document.createElement('div');
+  nayinCell.className = 'nayin-cell unknown-cell';
+
+  const qiEl = document.createElement('div');
+  qiEl.className = 'qi-phase';
+
+  return [hsBox, ebBox, hhsRow, nayinCell, qiEl];
+}
+
+function buildPillarCol(pillarIdx, chart, stars, interactions, labelText, navInfo) {
   const p = chart.pillars[pillarIdx];
-
-  if (!p) {
-    const col = document.createElement('div');
-    col.className = 'pillar-col';
-    const lbl = document.createElement('div');
-    lbl.className = 'pillar-label';
-    lbl.textContent = labelText;
-    col.appendChild(lbl);
-    const box = document.createElement('div');
-    box.className = 'gz-box unknown-pillar';
-    box.innerHTML = '<div class="zh" style="color:#bbb;font-size:1.2rem">?</div><div class="en" style="color:#bbb">Unknown</div>';
-    col.appendChild(box);
-    return col;
-  }
-
-  const tg = derivedData.stemTenGods[pillarIdx];
-  const stage = derivedData.twelveStages[pillarIdx];
-  const ny = derivedData.naYin[pillarIdx];
-  const [vA, vB] = derivedData.voidsPerPillar[pillarIdx];
-  const hhs = derivedData.hiddenStems[pillarIdx];
-  const hhsTg = derivedData.hiddenStemTenGods[pillarIdx];
 
   const col = document.createElement('div');
   col.className = 'pillar-col';
@@ -96,42 +157,13 @@ function buildPillarCol(pillarIdx, chart, derivedData, stars, interactions, labe
   // Nav controls
   if (navInfo) col.appendChild(_buildNavRow(navInfo));
 
-  // HS box
-  const hsBox = document.createElement('div');
-  hsBox.className = 'gz-box';
-  _colorStem(hsBox, p.stem);
-  hsBox.innerHTML = `<div class="zh">${p.stem}</div>
-    <div class="en">${T.STEM_PY[p.stem]}</div>
-    <div class="ten-god">${tg}</div>`;
-  col.appendChild(hsBox);
+  if (!p) {
+    _buildUnknownPillarCells().forEach(c => col.appendChild(c));
+    return col;
+  }
 
-  // EB box
-  const ebBox = document.createElement('div');
-  ebBox.className = 'gz-box';
-  _colorBranch(ebBox, p.branch);
-  ebBox.innerHTML = `<div class="zh">${p.branch}</div>
-    <div class="en">${T.BRANCH_ANIMAL[p.branch]}</div>
-    <div class="stage">${stage}</div>
-    <div class="nayin">${ny}</div>`;
-  col.appendChild(ebBox);
-
-  // Hidden stems
-  const hhsRow = document.createElement('div');
-  hhsRow.className = 'hhs-row';
-  hhs.forEach((hs, i) => {
-    const chip = document.createElement('div');
-    chip.className = 'hhs-chip';
-    _colorStem(chip, hs);
-    chip.innerHTML = `<div class="zh">${hs}</div><div class="ten-god">${hhsTg[i]}</div>`;
-    hhsRow.appendChild(chip);
-  });
-  col.appendChild(hhsRow);
-
-  // Void
-  const voidEl = document.createElement('div');
-  voidEl.className = 'void-label';
-  voidEl.textContent = `Void: ${T.BRANCH_PY[vA]}, ${T.BRANCH_PY[vB]}`;
-  col.appendChild(voidEl);
+  const tenGodLabel = pillarIdx === 2 ? 'Day Master' : undefined;
+  _buildPillarCells(p.stem, p.branch, chart.dm, tenGodLabel).forEach(c => col.appendChild(c));
 
   // Stars
   const starsEl = _renderStarsRow(stars);
@@ -228,62 +260,39 @@ function buildAnnualTable(rows, dm, chart) {
   return wrap;
 }
 
+function _buildLuckCard(lp, chart) {
+  const card = document.createElement('div');
+  card.className = 'luck-card';
+
+  const hdr = document.createElement('div');
+  hdr.className = 'lc-header';
+  hdr.innerHTML = `<div class="lc-age">Age ${lp.ageStart}–${lp.ageEnd}</div>
+    <div class="lc-year">${lp.yearStart}–${lp.yearEnd}</div>`;
+  card.appendChild(hdr);
+
+  _buildPillarCells(lp.stem, lp.branch, chart.dm).forEach(c => card.appendChild(c));
+
+  const starsEl = _renderStarsRow(starsForLuckPillar(lp, chart));
+  if (starsEl) card.appendChild(starsEl);
+
+  const intEl = _renderInteractionsRow(luckInteractionList(lp, chart), 'Interactions');
+  if (intEl) card.appendChild(intEl);
+
+  return card;
+}
+
 function buildLuckRow(luckArr, chart) {
   const container = document.createElement('div');
   const row = document.createElement('div');
   row.className = 'luck-row';
 
   luckArr.forEach((lp) => {
-    const card = document.createElement('div');
-    card.className = 'luck-card';
-
-    const hsDiv = document.createElement('div');
-    hsDiv.className = 'lc-hs';
-    hsDiv.innerHTML = `<div class="zh">${lp.stem}</div><div class="ten-god">${T.tenGodName(chart.dm, lp.stem)}</div>`;
-    _colorStem(hsDiv, lp.stem);
-
-    const ebDiv = document.createElement('div');
-    ebDiv.className = 'lc-eb';
-    ebDiv.innerHTML = `<div class="zh">${lp.branch}</div><div class="en">${T.BRANCH_ANIMAL[lp.branch]}</div>`;
-    _colorBranch(ebDiv, lp.branch);
-
-    const ageDiv = document.createElement('div');
-    ageDiv.className = 'lc-age';
-    ageDiv.textContent = `Age ${lp.ageStart}–${lp.ageEnd}`;
-
-    const yrDiv = document.createElement('div');
-    yrDiv.className = 'lc-year';
-    yrDiv.textContent = `${lp.yearStart}–${lp.yearEnd}`;
-
-    card.appendChild(hsDiv);
-    card.appendChild(ebDiv);
-    card.appendChild(ageDiv);
-    card.appendChild(yrDiv);
+    const card = _buildLuckCard(lp, chart);
     row.appendChild(card);
 
-    // Annual table + luck interactions
+    // Annual table (year-by-year), revealed on click
     const annualRows = annualForLuck(lp, chart.dob.getFullYear());
     const annWrap = buildAnnualTable(annualRows, chart.dm, chart);
-
-    // Luck stars + interactions (prepended inside the expandable area)
-    const lpStars = starsForLuckPillar(lp, chart);
-    const lpInts  = luckInteractionList(lp, chart);
-    if (lpStars.length || lpInts.length) {
-      const intWrap = document.createElement('div');
-      intWrap.className = 'luck-interactions';
-      const starsEl = _renderStarsRow(lpStars);
-      if (starsEl) {
-        const starsHdr = document.createElement('div');
-        starsHdr.className = 'int-title';
-        starsHdr.textContent = 'Symbolic stars';
-        intWrap.appendChild(starsHdr);
-        intWrap.appendChild(starsEl);
-      }
-      const intEl = _renderInteractionsRow(lpInts, 'Interactions');
-      if (intEl) intWrap.appendChild(intEl);
-      annWrap.insertBefore(intWrap, annWrap.firstChild);
-    }
-
     container.appendChild(annWrap);
 
     card.addEventListener('click', () => {
@@ -309,15 +318,7 @@ function renderChart(containerEl, chart, onDateNav) {
   if (warn) warn.style.display = chart.nearJieBoundary ? 'block' : 'none';
 
   // Compute derived data
-  const derivedData = {
-    stemTenGods: stemTenGods(chart),
-    hiddenStems: hiddenStems(chart),
-    hiddenStemTenGods: hiddenStemTenGods(chart),
-    twelveStages: twelveStages(chart),
-    naYin: naYin(chart),
-    voidsPerPillar: voidsPerPillar(chart),
-    balance: elementBalance(chart),
-  };
+  const balance = elementBalance(chart);
   const starsList   = chart.pillars.map((_, i) => starsForPillar(i, chart));
   const intsList    = pillarsInteractionList(chart);
   const luckArr     = luckPillars(chart, 8);
@@ -336,10 +337,12 @@ function renderChart(containerEl, chart, onDateNav) {
     0: { component: 'year',  displayValue: String(_dob.getFullYear()) },
     1: { component: 'month', displayValue: _MONTH_ABBR[_dob.getMonth()] },
     2: { component: 'day',   displayValue: String(_dob.getDate()) },
-    3: chart.hour ? { component: 'hour', displayValue: String(_dob.getHours()).padStart(2,'0') + ':00' } : null,
+    3: chart.hour
+      ? { component: 'hour', displayValue: String(_dob.getHours()).padStart(2,'0') + ':00' }
+      : { component: 'hour', displayValue: '?', disabled: true },
   } : { 0: null, 1: null, 2: null, 3: null };
   order.forEach(idx => grid.appendChild(
-    buildPillarCol(idx, chart, derivedData, starsList[idx], intsList[idx], LABELS[idx],
+    buildPillarCol(idx, chart, starsList[idx], intsList[idx], LABELS[idx],
       _navInfos[idx] ? { ..._navInfos[idx], onNav: onDateNav } : null)
   ));
   pillarsSection.appendChild(grid);
@@ -353,7 +356,7 @@ function renderChart(containerEl, chart, onDateNav) {
   // ── Element balance ──
   const balSection = document.createElement('section');
   balSection.innerHTML = '<h2>Element Balance</h2>';
-  balSection.appendChild(buildElementBar(derivedData.balance));
+  balSection.appendChild(buildElementBar(balance));
   containerEl.appendChild(balSection);
 
   // ── Luck pillars ──

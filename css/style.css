@@ -77,12 +77,19 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 #result h2 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; letter-spacing: .03em; }
 
 /* ── Pillar grid (4 columns Hour|Day|Month|Year) ── */
+/* Cell size variables shared with .luck-row so luck cards match main-chart cells exactly. */
+.pillar-grid, .luck-row {
+  --gz-h: 78px;
+  --hhs-h: 42px;
+  --nayin-h: 34px;
+  --qi-h: 16px;
+}
 .pillar-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
-.pillar-col { display: flex; flex-direction: column; gap: 6px; }
+.pillar-col { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 
 /* Header label (Hour / Day / Month / Year) */
 .pillar-label {
@@ -96,35 +103,76 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 
 /* HS / EB boxes */
 .gz-box {
+  height: var(--gz-h);
   border-radius: 6px;
   text-align: center;
   padding: 6px 4px;
   background: #e8e8e8;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
 }
 .gz-box .zh { font-size: 1.8rem; line-height: 1; }
 .gz-box .en { font-size: .7rem; color: #444; margin-top: 2px; }
-.gz-box .ten-god { font-size: .68rem; color: #333; font-style: italic; }
-.gz-box .stage  { font-size: .68rem; color: #555; }
-.gz-box .nayin  { font-size: .65rem; color: #666; }
+.gz-box .py { font-size: .7rem; color: #444; }
+.gz-box .ten-god {
+  font-size: .68rem; color: #333; font-style: italic;
+  display: -webkit-box; -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; overflow: hidden;
+}
 
 /* Hidden stems row */
 .hhs-row {
+  height: var(--hhs-h);
   display: flex;
   gap: 4px;
 }
 .hhs-chip {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
   border-radius: 4px;
   padding: 3px 2px;
   text-align: center;
   background: #e8e8e8;
   font-size: .8rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
 }
 .hhs-chip .zh { font-size: 1rem; }
-.hhs-chip .ten-god { font-size: .6rem; color: #333; }
+.hhs-chip .ten-god {
+  font-size: .6rem; color: #333;
+  display: -webkit-box; -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; overflow: hidden;
+}
 
-/* Void label */
-.void-label { font-size: .65rem; color: #888; text-align: center; }
+/* Nayin cell (colored by nayin's own element) */
+.nayin-cell {
+  height: var(--nayin-h);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: .6rem;
+  line-height: 1.05;
+  padding: 2px 4px;
+  overflow: hidden;
+  background: #e8e8e8;
+}
+
+/* DM's qi phase (twelve stages) — replaces the old void label */
+.qi-phase {
+  height: var(--qi-h);
+  font-size: .65rem;
+  color: #555;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+}
 
 /* Shensha tags */
 .shensha-tags { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; }
@@ -151,54 +199,42 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 .element-chip .count { font-size: 1rem; font-weight: 700; }
 
 /* ── Luck pillar row ── */
+/* Cards are chrome-less like .pillar-col — same cells, no border/background/shadow
+   at rest. Hover/active give a subtle tint since there's no box to outline. */
 .luck-row {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   overflow-x: auto;
   padding-bottom: 4px;
 }
 .luck-card {
-  min-width: 96px;
-  flex: 0 0 96px;
-  border-radius: 7px;
-  overflow: hidden;
-  border: 1px solid #ddd;
-  background: #fff;
+  min-width: 140px;
+  flex: 0 0 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 2px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: box-shadow .15s;
 }
-.luck-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.15); }
-.luck-card.active { outline: 2px solid #3a6bcc; outline-offset: 0; }
-.luck-card .lc-hs {
+
+/* Age/year header, at the top of the card (like .pillar-label) — the only
+   part that highlights on hover/click, since the card itself has no chrome. */
+.lc-header {
   text-align: center;
-  padding: 6px 4px 2px;
+  border-radius: 4px;
+  transition: background-color .15s;
+  padding: 4px 2px;
 }
-.luck-card .lc-eb {
-  text-align: center;
-  padding: 2px 4px 6px;
-}
-.luck-card .lc-hs .zh, .luck-card .lc-eb .zh { font-size: 1.4rem; line-height: 1; }
-.luck-card .lc-hs .ten-god, .luck-card .lc-eb .en {
-  font-size: .6rem;
-  color: #444;
-  margin-top: 2px;
-}
-.luck-card .lc-hs .ten-god { font-style: italic; }
-.luck-card .lc-age {
-  text-align: center;
-  font-size: .65rem;
-  color: #555;
-  padding: 3px 4px;
-  background: #f0f0f0;
-  border-top: 1px solid #e0e0e0;
-}
-.luck-card .lc-year {
-  text-align: center;
-  font-size: .6rem;
-  color: #777;
-  padding: 2px 4px 4px;
-  background: #f0f0f0;
-}
+.luck-card:hover .lc-header { background-color: rgba(58,107,204,.18); }
+.luck-card.active .lc-header { background-color: rgba(58,107,204,.3); }
+.lc-header .lc-age { font-size: .65rem; color: #555; font-weight: 700; }
+.lc-header .lc-year { font-size: .6rem; color: #777; }
+
+/* Stars/interactions scaled down to fit the narrower luck card */
+.luck-card .star-name { font-size: .55rem; }
+.luck-card .int-title { font-size: .6rem; }
+.luck-card .int-item { font-size: .58rem; padding-left: 0; line-height: 1.45; }
 
 /* ── Annual table (collapsible) ── */
 .annual-wrap { display: none; margin-top: 12px; }
@@ -227,15 +263,24 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 @media (max-width: 600px) {
   #input-form { grid-template-columns: 1fr; }
   .dob-row { grid-template-columns: repeat(2, 1fr); }
+  .pillar-grid, .luck-row {
+    --gz-h: 68px;
+    --hhs-h: 38px;
+    --nayin-h: 30px;
+    --qi-h: 14px;
+  }
   .pillar-grid { gap: 4px; }
   .gz-box { padding: 4px 2px; }
   .gz-box .zh { font-size: 1.3rem; }
-  .gz-box .en, .gz-box .ten-god, .gz-box .stage, .gz-box .nayin { font-size: .58rem; }
+  .gz-box .en, .gz-box .py, .gz-box .ten-god { font-size: .58rem; }
   .hhs-chip { padding: 2px 1px; }
   .hhs-chip .zh { font-size: .8rem; }
   .hhs-chip .ten-god { font-size: .52rem; }
+  .nayin-cell { font-size: .53rem; }
+  .qi-phase { font-size: .56rem; }
   .pillar-label { font-size: .65rem; }
-  .void-label, .star-name, .int-item, .int-title { font-size: .54rem; }
+  .star-name, .int-item, .int-title { font-size: .54rem; }
+  .luck-card { min-width: 120px; flex-basis: 120px; padding: 2px 1px; }
 }
 
 /* ── Stars row ── */
@@ -270,11 +315,16 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
   padding:0; color:#444; transition:background .1s, border-color .1s;
   flex-shrink:0;
 }
-.nav-btn:hover { background:#e8eeff; border-color:#3a6bcc; color:#3a6bcc; }
+.nav-btn:hover:not(:disabled) { background:#e8eeff; border-color:#3a6bcc; color:#3a6bcc; }
+.nav-btn:disabled { opacity:.35; cursor:default; background:#fff; }
 .nav-val { font-size:.72rem; font-weight:600; color:#444; min-width:34px; text-align:center; }
 
-/* ── Unknown hour pillar ── */
-.unknown-pillar { background:#f5f5f5; border:1px dashed #ccc; display:flex; align-items:center; justify-content:center; min-height:60px; }
+/* ── Unknown hour cells (dashed placeholders, same fixed sizing as real cells) ── */
+.unknown-cell {
+  background:#f7f7f7; border:1px dashed #ccc; color:#bbb;
+  display:flex; align-items:center; justify-content:center;
+}
+.gz-box.unknown-cell { font-size:1.2rem; }
 
 /* ── Annual row selection ── */
 .annual-table tr { cursor: pointer; }

@@ -324,7 +324,7 @@ function renderChart(containerEl, chart, onDateNav) {
   const balance = elementBalance(chart);
   const starsList   = chart.pillars.map((_, i) => starsForPillar(i, chart));
   const intsList    = pillarsInteractionList(chart);
-  const luckArr     = luckPillars(chart, 8);
+  const luckArr     = luckPillars(chart, 10);
 
   // ── Four pillars section ──
   const pillarsSection = document.createElement('section');

@@ -10,7 +10,7 @@ function _directionForward(yearStem, sex) {
   return (yang && sex === 'M') || (!yang && sex === 'F');
 }
 
-function luckPillars(chart, count = 8) {
+function luckPillars(chart, count = 10) {
   const fwd = _directionForward(chart.year.stem, chart.sex);
   const ji = _jieFloor(chart.dobSec);
   let boundarySec;

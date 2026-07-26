@@ -117,7 +117,7 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 .gz-box .en { font-size: .7rem; color: #444; margin-top: 2px; }
 .gz-box .py { font-size: .7rem; color: #444; }
 .gz-box .ten-god {
-  font-size: .68rem; color: #333; font-style: italic;
+  font-size: .68rem; color: #333;
   display: -webkit-box; -webkit-box-orient: vertical;
   -webkit-line-clamp: 2; overflow: hidden;
 }

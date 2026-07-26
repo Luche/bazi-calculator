@@ -2,7 +2,9 @@
 // Depends on tables.js, luck.js, stars.js, interactions.js.
 
 (function() {
-  const TENGOD_ORDER = ['PW','AW','PO','AO','PS','AS','HO','EG','PR','RW'];
+  // Standard Ten God wheel order: Resource -> Self -> Output -> Wealth -> Officer
+  // (印生比劫, 比劫生食伤, 食伤生财, 财生官杀, 官杀生印 — the generating cycle back to Resource).
+  const TENGOD_ORDER = ['PS','AS','PR','RW','EG','HO','PW','AW','PO','AO'];
 
   // Names match T.EXCEL_CODE_TO_NAME in tables.js exactly (the labels already shown
   // on the pillar/hidden-stem chips), so the glossary term matches what's on screen.
@@ -40,8 +42,9 @@
   };
 
   const STAR_ORDER = [
-    'Nobleman Star','Academic Star','Sword Star','Prosperity Star','Peach Blossom Star',
-    'General Star','Star of Arts','Travelling Horse','Robbing Star','Death Star','Flower of Romance',
+    'Nobleman Star','Academic Star','Sword Star','Prosperity Star',
+    'Peach Blossom Star','Flower of Romance','Red Charm',
+    'General Star','Star of Arts','Travelling Horse','Robbing Star','Death Star',
     'Heavenly Virtue Star','Monthly Virtue Star','Solitary Star','Lonesome Star',
     'Heaven Void (YP)','Heaven Void (DP)',
     'Tai Ji Noble','National Seal','Hall of Learning','Kui Gang',
@@ -53,13 +56,14 @@
     'Academic Star': { meaning: 'Wen Chang (文昌). Favors studies, exams, and writing — boosts learning ability and literary or intellectual talent.' },
     'Sword Star': { meaning: 'Yang Ren (羊刃) — "Blade". Intense energy from the Day Master at its peak strength; brings courage and drive, but also a risk of conflict, injury, or rash decisions.' },
     'Prosperity Star': { meaning: 'Lu Shen (禄神) — the Day Master\'s own position of abundance. Represents stable income, self-sufficiency, and good health.' },
-    'Peach Blossom Star': { meaning: 'Tao Hua (桃花). Romantic charisma, attraction, and social popularity; can bring romantic opportunity, but also overindulgence or relationship complications.' },
+    'Peach Blossom Star': { meaning: 'Xianchi (咸池), keyed by the branch trine (三合) group of the Day/Year branch. Core energy: social magnetism and popularity — being attractive to others. Neutral in nature; keyword "Likable."' },
+    'Flower of Romance': { meaning: 'Tian Gan Peach Blossom (天干桃花), keyed by the Day Master stem. Core energy: deep desire and vulnerability — feeling a strong attraction rather than just being liked. Intense in nature; keyword "Obsessive."' },
+    'Red Charm': { meaning: 'Hong Yan Sha (红艳煞), keyed by the Day Master stem (a different mapping than Flower of Romance). Core energy: bewitching, passionate allure — an entangling romantic pull. Often problematic in nature; keyword "Bewitching," with classical texts linking it to vanity and a higher risk of romantic scandal.' },
     'General Star': { meaning: 'Jiang Xing (将星). Leadership authority and command presence; favors positions of power and being in charge.' },
     'Star of Arts': { meaning: 'Hua Gai (华盖) — "Canopy Star". Artistic, spiritual, and philosophical depth; talent for solitary pursuits, but a tendency toward isolation.' },
     'Travelling Horse': { meaning: 'Yi Ma (驿马) — "Post Horse". Mobility, travel, and change; favors relocation, business trips, and career movement, but can also bring restlessness.' },
     'Robbing Star': { meaning: 'Jie Sha (劫煞) — "Robbery Star". Risk of loss, theft, or being taken advantage of; calls for caution around finances and possessions.' },
     'Death Star': { meaning: 'Wang Shen (亡神). Hidden scheming and secrecy; can bring strategic advantage in disguise, but also hidden pitfalls for health or reputation.' },
-    'Flower of Romance': { meaning: 'Xian Chi (咸池), a Peach-Blossom variant. Sensual charm and social magnetism; strong attraction, with a risk of indulgence.' },
     'Heavenly Virtue Star': { meaning: 'Tian De (天德). Protection and goodwill from powerful, benevolent forces; softens harsh interactions and reduces misfortune elsewhere in the chart.' },
     'Monthly Virtue Star': { meaning: 'Yue De (月德). A protective, benevolent influence tied to the birth month; brings support from others and mitigates misfortune.' },
     'Solitary Star': { meaning: 'Gu Chen (孤辰). Tendency toward emotional distance or loneliness, especially in relationships with male relatives; independence, but a risk of isolation.' },

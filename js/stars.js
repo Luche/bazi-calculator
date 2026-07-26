@@ -6,7 +6,10 @@
   // wiki 1-based E-notation → T.BRANCHES index (0-based)
   function _e(n) { return T.BRANCHES[(n - 1) % 12]; }
 
-  // Symbolic Stars [dm, [nobleman], academic, [sword], prosperity, peach]
+  // Symbolic Stars [dm, [nobleman], academic, [sword], prosperity, hongYan]
+  // The last column is keyed by Day Master stem (甲->午, 丙->寅, 丁->未, 戊/己->辰,
+  // 庚->戌, 辛->酉, 壬->子, 癸->申) — this is Hong Yan Sha (红艳煞, "Red Charm"),
+  // not the branch-trine Peach Blossom (that's _GENERAL's last column below).
   const _SYMBOLIC = [
     ['甲', [_e(2),_e(8)],  _e(6),  [_e(4)],        _e(3),  _e(7)],
     ['乙', [_e(1),_e(9)],  _e(7),  [_e(3),_e(5)],  _e(4),  _e(7)],
@@ -21,7 +24,9 @@
   ];
 
   // General Stars: row = branchIdx % 4
-  // Columns: [General, Arts, Travelling Horse, Robbing, Death, Flower of Romance]
+  // Columns: [General, Arts, Travelling Horse, Robbing, Death, Peach Blossom]
+  // The last column (keyed by Day/Year branch trine: 申子辰->酉, 巳酉丑->午,
+  // 寅午戌->卯, 亥卯未->子) is the real Tao Hua (桃花) / Peach Blossom Star.
   const _GENERAL = [
     [_e(1), _e(5),  _e(3),  _e(6),  _e(12), _e(10)],  // E1/E5/E9  (子/辰/申)
     [_e(10),_e(2),  _e(12), _e(3),  _e(9),  _e(7)],   // E2/E6/E10 (丑/巳/酉)
@@ -30,7 +35,7 @@
   ];
   const _GENERAL_NAMES = [
     'General Star','Star of Arts','Travelling Horse',
-    'Robbing Star','Death Star','Flower of Romance',
+    'Robbing Star','Death Star','Peach Blossom Star',
   ];
 
   // Heavenly Virtue Star (keyed by Month Branch)
@@ -71,6 +76,13 @@
   // Kui Gang (魁罡) — exact Day Pillar stem+branch
   const _KUI_GANG = ['庚辰','庚戌','壬辰','戊戌'];
 
+  // Tian Gan Peach Blossom (天干桃花) — keyed by Day Stem, distinct from both
+  // Xianchi (_GENERAL's branch-trine Peach Blossom) and Hong Yan Sha (_SYMBOLIC's last column).
+  const _TIANGAN_PEACH = {
+    '甲':'子', '乙':'巳', '丙':'卯', '丁':'申', '戊':'卯',
+    '己':'申', '庚':'午', '辛':'亥', '壬':'酉', '癸':'寅',
+  };
+
   // Three Extraordinary Nobleman (三奇貴人) — Year/Month/Day stems only.
   // Source: en.wikibooks.org/wiki/Ba_Zi/Symbolic_Stars (the "BaZi Book Wiki" cited above).
   // Full strength requires exactly Day→Month→Year reading in this order; any other
@@ -108,13 +120,14 @@
     // 1. Symbolic Stars (by Day Stem)
     const symRow = _SYMBOLIC.find(r => r[0] === dm);
     if (symRow) {
-      const [, nobleman, academic, sword, prosperity, peach] = symRow;
+      const [, nobleman, academic, sword, prosperity, hongYan] = symRow;
       if (nobleman.includes(branch))  result.push('Nobleman Star');
       if (branch === academic)         result.push('Academic Star');
       if (sword.includes(branch))      result.push('Sword Star');
       if (branch === prosperity)       result.push('Prosperity Star');
-      if (branch === peach)            result.push('Peach Blossom Star');
+      if (branch === hongYan)          result.push('Red Charm');
     }
+    if (_TIANGAN_PEACH[dm] === branch) result.push('Flower of Romance');
 
     // 2. General Stars (by Day Branch AND Year Branch — each can trigger stars)
     const seen = new Set();

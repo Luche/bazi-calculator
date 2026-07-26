@@ -31,11 +31,14 @@ function _renderInteractionsRow(items, title) {
   items.forEach(s => {
     const d = document.createElement('div');
     d.className = 'int-item';
-    if (typeof s === 'string') {
-      d.textContent = s;
+    if (s.endsWith('*')) {
+      d.appendChild(document.createTextNode(s.slice(0, -1)));
+      const star = document.createElement('span');
+      star.className = 'int-activated-star';
+      star.textContent = '*';
+      d.appendChild(star);
     } else {
-      d.textContent = s.text;
-      d.style.color = s.color;
+      d.textContent = s;
     }
     div.appendChild(d);
   });

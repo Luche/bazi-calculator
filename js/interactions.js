@@ -183,12 +183,9 @@
         // Show as half combination — arrange so missing is in middle if it's the "anchor"
         const [first, last] = presentInChart;
         const orderedStr = `${_bPY(first)}-(${_bPY(missing)})-${_bPY(last)}`;
-        const text = `half combination (${orderedStr} [${el}])`;
-        if (stems && stems.some(s => T.STEM_ELEMENT[s] === el)) {
-          res.push({text, color: T.ELEMENT_COLORS[el]});
-        } else {
-          res.push(text);
-        }
+        const activated = stems && stems.some(s => T.STEM_ELEMENT[s] === el);
+        const text = `half combination (${orderedStr} [${el}])${activated ? '*' : ''}`;
+        res.push(text);
       }
     }
 

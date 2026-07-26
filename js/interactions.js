@@ -301,4 +301,6 @@
 
     return _sortByRank(result);
   };
+
+  window.INTERACTION_TYPE_ORDER = _RANK_PREFIXES;
 })();

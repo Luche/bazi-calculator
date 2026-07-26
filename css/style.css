@@ -284,7 +284,8 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 }
 
 /* ── Stars row ── */
-.stars-row { display:flex; flex-wrap:wrap; gap:3px; margin-top:5px; padding:2px 0; }
+.stars-block { margin-top:5px; }
+.stars-row { display:flex; flex-wrap:wrap; gap:3px; padding:2px 0; }
 .star-name {
   background:#fffbe6; border:1px solid #e8c400; border-radius:3px;
   font-size:.58rem; padding:1px 4px; color:#333; white-space:nowrap;
@@ -303,7 +304,7 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 }
 .luck-interactions .int-title { font-weight:700; margin:4px 0 2px; }
 .luck-interactions .int-item  { padding-left:6px; line-height:1.6; color:#555; }
-.luck-interactions .stars-row { margin-top:2px; }
+.luck-interactions .stars-block { margin-top:2px; }
 
 /* ── Pillar nav controls ── */
 .pillar-nav-row {
@@ -332,18 +333,6 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 .annual-table tr.selected td { background: #e8f0ff; }
 .annual-table tr.selected td:first-child { border-left: 3px solid #3a6bcc; }
 
-/* ── Annual year panel ── */
-#annual-panel { display:none; margin-bottom:24px; background:#fff; border-radius:8px; padding:14px 16px; box-shadow:0 1px 4px rgba(0,0,0,.1); }
-#annual-panel.visible { display:block; }
-#annual-panel h3 { font-size:.95rem; font-weight:700; margin-bottom:10px; color:#222; }
-.annual-pillar-box {
-  display:inline-flex; flex-direction:column; align-items:center;
-  border-radius:6px; padding:6px 12px; margin-bottom:8px;
-  min-width:72px; text-align:center; border:1px solid rgba(0,0,0,.15);
-}
-.annual-pillar-box .zh { font-size:1.6rem; line-height:1.2; }
-.annual-pillar-box .en { font-size:.68rem; color:#555; margin-top:2px; }
-
 /* Annual year ints block inside expanded luck card */
 .annual-year-ints { border-top:1px solid #eee; margin-top:4px; }
 
@@ -355,3 +344,56 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
   cursor:pointer; font-weight:600; transition:background .15s;
 }
 #copy-btn:hover { background:#2a55b0; }
+
+/* ── Help FAB + glossary panel ── */
+.help-fab {
+  position: fixed; right: 24px; bottom: 24px; z-index: 1000;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: #3a6bcc; color: #fff; border: none;
+  font-size: 1.3rem; font-weight: 700; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  transition: background .15s;
+}
+.help-fab:hover { background: #2a55b0; }
+
+.help-overlay {
+  position: fixed; inset: 0; z-index: 1001;
+  background: rgba(0,0,0,.45);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.help-overlay.open { display: flex; }
+
+.help-panel {
+  background: #fff; border-radius: 8px;
+  width: min(90vw, 600px); max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 1px 4px rgba(0,0,0,.12);
+}
+.help-panel-header {
+  position: sticky; top: 0; background: #fff;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid #eee;
+}
+.help-panel-header h2 { font-size: 1.1rem; }
+.help-panel-close {
+  border: none; background: none; font-size: 1.4rem; line-height: 1;
+  cursor: pointer; color: #888; padding: 0 4px;
+}
+.help-panel-close:hover { color: #222; }
+
+.help-panel-body { padding: 12px 18px 18px; font-size: .85rem; color: #666; text-align: center; }
+.help-panel-body:has(.glossary-section) { text-align: left; }
+
+.glossary-section + .glossary-section { margin-top: 16px; }
+.glossary-section h3 {
+  font-size: .8rem; font-weight: 700; color: #3a6bcc;
+  text-transform: uppercase; letter-spacing: .03em;
+  margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #eee;
+}
+.glossary-intro { font-size: .78rem; color: #666; margin-bottom: 8px; }
+.glossary-item { padding: 6px 0; border-bottom: 1px solid #f5f5f5; }
+.glossary-item:last-child { border-bottom: none; }
+.glossary-term { font-weight: 700; font-size: .88rem; margin-bottom: 2px; }
+.glossary-desc { font-size: .8rem; color: #444; line-height: 1.5; }
+.glossary-desc em { color: #3a6bcc; font-style: normal; }

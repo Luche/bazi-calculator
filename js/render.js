@@ -1,5 +1,7 @@
 // DOM builder. Depends on all other modules.
 
+let _lastChart = null;
+
 function applyElementColor(el, element) {
   el.style.backgroundColor = T.ELEMENT_COLORS[element] || '#e8e8e8';
 }
@@ -7,17 +9,24 @@ function applyElementColor(el, element) {
 function _colorStem(el, stem)   { applyElementColor(el, T.STEM_ELEMENT[stem]); }
 function _colorBranch(el, br)   { applyElementColor(el, T.BRANCH_ELEMENT[br]); }
 
-function _renderStarsRow(names) {
+function _renderStarsRow(names, title) {
   if (!names.length) return null;
-  const div = document.createElement('div');
-  div.className = 'stars-row';
+  const wrap = document.createElement('div');
+  wrap.className = 'stars-block';
+  const hdr = document.createElement('div');
+  hdr.className = 'int-title';
+  hdr.textContent = title || 'Symbolic Stars';
+  wrap.appendChild(hdr);
+  const row = document.createElement('div');
+  row.className = 'stars-row';
   names.forEach(name => {
     const s = document.createElement('span');
     s.className = 'star-name';
     s.textContent = name;
-    div.appendChild(s);
+    row.appendChild(s);
   });
-  return div;
+  wrap.appendChild(row);
+  return wrap;
 }
 
 function _renderInteractionsRow(items, title) {
@@ -193,42 +202,23 @@ function buildElementBar(balance) {
 }
 
 function showAnnualSelection(year, stem, branch, chart) {
-  const panel = document.getElementById('annual-panel');
-  if (!panel) return;
+  const activeWrap = document.querySelector('.annual-wrap.open');
+  if (!activeWrap) return;
+
   const stars = starsForLuckPillar({stem, branch}, chart);
   const ints  = luckInteractionList({stem, branch}, chart);
 
-  panel.innerHTML = '';
-  const h3 = document.createElement('h3');
-  h3.textContent = `Annual Year ${year} — ${stem}${branch} (${T.STEM_PY[stem]}${T.BRANCH_PY[branch]})`;
-  panel.appendChild(h3);
-
-  const box = document.createElement('div');
-  box.className = 'annual-pillar-box';
-  applyElementColor(box, T.STEM_ELEMENT[stem]);
-  box.innerHTML = `<div class="zh">${stem}${branch}</div><div class="en">${T.JIAZI_PY[stem + branch]}</div>`;
-  panel.appendChild(box);
-
-  const starsEl = _renderStarsRow(stars);
-  if (starsEl) panel.appendChild(starsEl);
-  const intsEl = _renderInteractionsRow(ints, 'Interactions with birth chart');
-  if (intsEl) panel.appendChild(intsEl);
-  panel.classList.add('visible');
-
-  const activeWrap = document.querySelector('.annual-wrap.open');
-  if (activeWrap) {
-    let intWrap = activeWrap.querySelector('.annual-year-ints');
-    if (!intWrap) {
-      intWrap = document.createElement('div');
-      intWrap.className = 'annual-year-ints luck-interactions';
-      activeWrap.appendChild(intWrap);
-    }
-    intWrap.innerHTML = `<div class="int-title">Selected Year ${year}: ${stem}${branch}</div>`;
-    const starsEl2 = _renderStarsRow(stars);
-    if (starsEl2) intWrap.appendChild(starsEl2);
-    const intsEl2 = _renderInteractionsRow(ints, 'Interactions');
-    if (intsEl2) intWrap.appendChild(intsEl2);
+  let intWrap = activeWrap.querySelector('.annual-year-ints');
+  if (!intWrap) {
+    intWrap = document.createElement('div');
+    intWrap.className = 'annual-year-ints luck-interactions';
+    activeWrap.appendChild(intWrap);
   }
+  intWrap.innerHTML = `<div class="int-title">Selected Year ${year}: ${stem}${branch}</div>`;
+  const starsEl = _renderStarsRow(stars);
+  if (starsEl) intWrap.appendChild(starsEl);
+  const intsEl = _renderInteractionsRow(ints, 'Interactions');
+  if (intsEl) intWrap.appendChild(intsEl);
 }
 
 function buildAnnualTable(rows, dm, chart) {
@@ -243,6 +233,8 @@ function buildAnnualTable(rows, dm, chart) {
   for (const r of rows) {
     const tg = T.tenGodName(dm, r.stem);
     const tr = document.createElement('tr');
+    tr.dataset.stem = r.stem;
+    tr.dataset.branch = r.branch;
     const hsColor = T.ELEMENT_COLORS[T.STEM_ELEMENT[r.stem]];
     const ebColor = T.ELEMENT_COLORS[T.BRANCH_ELEMENT[r.branch]];
     tr.innerHTML = `<td>${r.year}</td>
@@ -314,6 +306,7 @@ function buildLuckRow(luckArr, chart) {
 }
 
 function renderChart(containerEl, chart, onDateNav) {
+  _lastChart = chart;
   containerEl.innerHTML = '';
 
   // Jie boundary warning
@@ -351,11 +344,6 @@ function renderChart(containerEl, chart, onDateNav) {
   pillarsSection.appendChild(grid);
   containerEl.appendChild(pillarsSection);
 
-  // ── Annual year panel (populated on row click) ──
-  const annualPanel = document.createElement('div');
-  annualPanel.id = 'annual-panel';
-  containerEl.appendChild(annualPanel);
-
   // ── Element balance ──
   const balSection = document.createElement('section');
   balSection.innerHTML = '<h2>Element Balance</h2>';
@@ -367,4 +355,94 @@ function renderChart(containerEl, chart, onDateNav) {
   luckSection.innerHTML = '<h2>Luck Pillars (大运) — click to expand</h2>';
   luckSection.appendChild(buildLuckRow(luckArr, chart));
   containerEl.appendChild(luckSection);
+}
+
+// ── Chart Glossary help panel ──────────────────────────────────────────────
+
+function _glossaryItem(term, bodyHtml) {
+  const item = document.createElement('div');
+  item.className = 'glossary-item';
+  const t = document.createElement('div');
+  t.className = 'glossary-term';
+  t.textContent = term;
+  item.appendChild(t);
+  const b = document.createElement('div');
+  b.className = 'glossary-desc';
+  b.innerHTML = bodyHtml;
+  item.appendChild(b);
+  return item;
+}
+
+function _simpleItemBuilder(key, infoMap) {
+  const info = infoMap[key];
+  return _glossaryItem(key, info ? info.meaning : '');
+}
+
+// Builds each Ten God item with the actual stem/element that fills that role for
+// THIS chart's Day Master (e.g. Proper Wealth for a Yang Metal DM is Yin Wood).
+function _tenGodItemBuilder(chart) {
+  return function(code, infoMap) {
+    const info = infoMap[code];
+    if (!info) return _glossaryItem(code, '');
+    const targetStem = T.STEMS.find(s => T.tenGod(chart.dm, s) === code);
+    const yinYang = T.STEM_YANG[targetStem] ? 'Yang' : 'Yin';
+    const elementLabel = `${yinYang} ${T.STEM_ELEMENT[targetStem]} (${targetStem} ${T.STEM_PY[targetStem]})`;
+    const parts = [
+      `<em>${info.pinyin}</em> — ${info.aspect}`,
+      `Element in this chart: ${elementLabel}`,
+    ];
+    if (info.relation[chart.sex]) parts.push(`Relation: ${info.relation[chart.sex]}`);
+    parts.push(info.meaning);
+    return _glossaryItem(info.name, parts.join('<br>'));
+  };
+}
+
+function _dmSummaryHtml(chart) {
+  const yinYang = T.STEM_YANG[chart.dm] ? 'Yang' : 'Yin';
+  const genderLabel = chart.sex === 'M' ? 'Male chart' : 'Female chart';
+  return `Day Master: ${chart.dm} ${T.STEM_PY[chart.dm]} — ${yinYang} ${T.STEM_ELEMENT[chart.dm]} · ${genderLabel}`;
+}
+
+function _buildGlossarySection(title, keys, infoMap, itemBuilder, introHtml) {
+  if (!keys.length) return null;
+  const sec = document.createElement('div');
+  sec.className = 'glossary-section';
+  const h = document.createElement('h3');
+  h.textContent = title;
+  sec.appendChild(h);
+  if (introHtml) {
+    const intro = document.createElement('div');
+    intro.className = 'glossary-intro';
+    intro.innerHTML = introHtml;
+    sec.appendChild(intro);
+  }
+  keys.forEach(k => sec.appendChild(itemBuilder(k, infoMap)));
+  return sec;
+}
+
+function buildHelpPanelContent() {
+  const wrap = document.createElement('div');
+  if (!_lastChart) {
+    wrap.textContent = 'Calculate a chart first.';
+    return wrap;
+  }
+  const selRow = document.querySelector('#result .annual-table tr.selected');
+  const selectedYear = selRow ? { stem: selRow.dataset.stem, branch: selRow.dataset.branch } : null;
+  const luckArr = luckPillars(_lastChart, 10);
+  const data = collectChartGlossary(_lastChart, luckArr, selectedYear);
+
+  const sections = [
+    _buildGlossarySection('Aspects of Life', data.tenGods, TENGOD_INFO,
+      _tenGodItemBuilder(_lastChart), _dmSummaryHtml(_lastChart)),
+    _buildGlossarySection('Symbolic Stars — Natal Chart', data.starsNatal, STAR_INFO, _simpleItemBuilder),
+    _buildGlossarySection('Symbolic Stars — Luck Pillars Only', data.starsLuckOnly, STAR_INFO, _simpleItemBuilder),
+    _buildGlossarySection('Interactions — Natal Chart', data.interactionsNatal, INTERACTION_INFO, _simpleItemBuilder),
+    _buildGlossarySection('Interactions — Luck Pillars Only', data.interactionsLuckOnly, INTERACTION_INFO, _simpleItemBuilder),
+  ];
+  sections.forEach(s => { if (s) wrap.appendChild(s); });
+
+  const isEmpty = !data.tenGods.length && !data.starsNatal.length && !data.starsLuckOnly.length
+    && !data.interactionsNatal.length && !data.interactionsLuckOnly.length;
+  if (isEmpty) wrap.textContent = 'No symbolic stars or interactions in this chart.';
+  return wrap;
 }

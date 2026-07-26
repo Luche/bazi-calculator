@@ -66,6 +66,17 @@
 
   <div id="result"></div>
 
+  <button id="help-fab" class="help-fab" title="Chart Glossary" aria-label="Chart Glossary">?</button>
+  <div id="help-panel-overlay" class="help-overlay">
+    <div class="help-panel">
+      <div class="help-panel-header">
+        <h2>Chart Glossary</h2>
+        <button id="help-panel-close" class="help-panel-close" aria-label="Close">&times;</button>
+      </div>
+      <div id="help-panel-body" class="help-panel-body"></div>
+    </div>
+  </div>
+
   <script src="js/data.js"></script>
   <script src="js/tables.js"></script>
   <script src="js/chart.js"></script>
@@ -73,6 +84,7 @@
   <script src="js/luck.js"></script>
   <script src="js/stars.js"></script>
   <script src="js/interactions.js"></script>
+  <script src="js/glossary.js"></script>
   <script src="js/prompt.js"></script>
   <script src="js/render.js"></script>
   <script>
@@ -145,6 +157,20 @@
       const timeInput = document.getElementById('inp-time');
       timeInput.disabled = this.checked;
       timeInput.style.opacity = this.checked ? '0.4' : '1';
+    });
+
+    const helpOverlay = document.getElementById('help-panel-overlay');
+    document.getElementById('help-fab').addEventListener('click', () => {
+      const body = document.getElementById('help-panel-body');
+      body.innerHTML = '';
+      body.appendChild(buildHelpPanelContent());
+      helpOverlay.classList.add('open');
+    });
+    document.getElementById('help-panel-close').addEventListener('click', () => {
+      helpOverlay.classList.remove('open');
+    });
+    helpOverlay.addEventListener('click', (e) => {
+      if (e.target === helpOverlay) helpOverlay.classList.remove('open');
     });
 
     // Default to today's date/time and render immediately on page load.

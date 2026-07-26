@@ -37,11 +37,33 @@ Useful God (Yong-Shen) = main Ten-God for structure; Assistant (Xiang-Shen) supp
 
 Pillars & life-stage: Year(1-16), Month(17-32), Day(33-48), Hour(48+).
 
-Clash/Combine/Penalty changes the balance.
+Clash/Combine/Penalty changes the balance. Earthly Branch interactions follow this strict hierarchy, ranked highest to lowest priority — when two or more interactions apply to overlapping branches, the higher-ranked one takes precedence / overrides the lower one:
+
+1. Seasonal Combination (三会) — highest priority
+2. Three Combinations (三合)
+3. Three Persecuting Clashes — full trio present (寅巳申 Ungrateful Penalty / 丑戌未 Arrogant Penalty)
+4. Six Clashes (六冲)
+5. Half Seasonal Combination
+6. Three Penalties — only 2 of the 3 trio branches present (Ungrateful: Yin-Si-Shen / Arrogant: Chou-Wei-Xu)
+7. Half Combination — half of a triangular combination; marked "activated" when a matching Heavenly Stem is exposed in the chart
+8. The Impolite Penalty (Zi-Mao)
+9. Self Persecuting Clash (Self-Punishment)
+10. Six Combinations (六合)
+11. Destruction (破)
+12. Harm (害)
+
+Heavenly Stem combinations/conflicts (and HS+HHS combinations with a hidden stem) operate on a separate axis from the above and are reported alongside it.
 
 Workflow
 
-Read and analyse .
+Read and analyse the chart in this order:
+
+1. Day Master Strength and Elemental Balance: Is the chart strong or weak? What elements does it need?
+2. Interactions (Clashes, Combinations, Punishments, Harms): What are the key dynamics shaping the chart?
+3. The Ten Gods: What is the relationship between the elements in the chart and the Day Master?
+4. Chart Structure (格局, Gé Jú): What is the primary pattern of the chart? (e.g., Wealth, Officer, Resource)
+5. Symbolic Stars (Shen Sha): How do the specific stars modify and color the structure above?
+6. Luck Pillars: When are these structures and stars activated?
 
 Receive user question.
 
@@ -64,6 +86,20 @@ Output the entire report at once, without asking the user to continue.`;
   function _tgForStem(dm, stem)   { return T.tenGodName(dm, stem); }
   function _tgForBranch(dm, br)   { return T.tenGodName(dm, T.HIDDEN_STEMS[br][0]); }
 
+  function _starWithHanzi(name) {
+    const base = name.endsWith('*') ? name.slice(0, -1) : name;
+    const info = window.STAR_INFO && window.STAR_INFO[base];
+    return info && info.hanzi ? `${name} (${info.hanzi})` : name;
+  }
+  function _starsLine(stars) {
+    return stars.length ? stars.map(_starWithHanzi).join(', ') : '(none)';
+  }
+  function _line(arr) {
+    return arr.length ? arr.join(', ') : '(none)';
+  }
+
+  const _PILLAR_LABELS = ['Year Pillar', 'Month Pillar', 'Day Pillar', 'Hour Pillar'];
+
   function _voidsPinyin(chart) {
     return voidsPerPillar(chart).map(([a, b]) => `${T.BRANCH_PY[a]}, ${T.BRANCH_PY[b]}`);
   }
@@ -84,8 +120,13 @@ Output the entire report at once, without asking the user to continue.`;
     const voids    = _voidsPinyin(chart);
     const stages   = twelveStages(chart);
     const ss       = chart.pillars.map((_, i) => starsForPillar(i, chart));
-    const ssLines  = ['Year Pillar', 'Month Pillar', 'Day Pillar', 'Hour Pillar']
-      .map((lbl, i) => `${lbl}: ${ss[i].length ? ss[i].join(', ') : '(none)'}`)
+    const ssLines  = _PILLAR_LABELS
+      .map((lbl, i) => `${lbl}: ${_starsLine(ss[i])}`)
+      .join('\n');
+
+    const ints     = pillarsInteractionList(chart);
+    const intLines = _PILLAR_LABELS
+      .map((lbl, i) => `${lbl}: ${_line(ints[i])}`)
       .join('\n');
 
     const lps   = luckPillars(chart, 8);
@@ -98,7 +139,9 @@ Output the entire report at once, without asking the user to continue.`;
            + `Ages: ${lp.ageStart} - ${lp.ageEnd}; `
            + `Heavenly Stem: ${_tgForStem(dm, lp.stem)}; `
            + `Earthly Branch: ${_tgForBranch(dm, lp.branch)}; `
-           + `Cycle: ${T.JIAZI_PY[lp.stem + lp.branch]}.`;
+           + `Cycle: ${T.JIAZI_PY[lp.stem + lp.branch]}; `
+           + `Symbolic Stars: ${_starsLine(starsForLuckPillar(lp, chart))}; `
+           + `Interactions: ${_line(luckInteractionList(lp, chart))}.`;
     }
 
     function annualBlock(lp) {
@@ -107,15 +150,6 @@ Output the entire report at once, without asking the user to continue.`;
       + `Cycle: ${T.JIAZI_PY[r.stem + r.branch]}; `
       + `Heavenly Stem: ${_tgForStem(dm, r.stem)}; `
       + `Earthly Branch: ${_tgForBranch(dm, r.branch)}.`
-      ).join('\n');
-    }
-
-    function monthlyBlock() {
-      return monthlyForYear(nowY).map(m =>
-        `Lunar Month: ${m.month}; `
-      + `Cycle: ${T.JIAZI_PY[m.stem + m.branch]}; `
-      + `Heavenly Stem: ${_tgForStem(dm, m.stem)}; `
-      + `Earthly Branch: ${_tgForBranch(dm, m.branch)}.`
       ).join('\n');
     }
 
@@ -134,13 +168,13 @@ Output the entire report at once, without asking the user to continue.`;
 Gender: ${sexLabel} Heavenly Stems: ${stemPy.join(', ')} Earthly Branches: ${branchPy.join(', ')} Hidden Stems: ${hidChars} Ten Gods (Heavenly Stems): ${stemTg.join(', ')} Ten Gods (Earthly Branches): ${hidTg.join(', ')} Na Yin: ${nayin.join(', ')} Void (Kong Wang): ${voids.join(', ')} Stage (Di Shi): ${stages.join(', ')} Gods & Shensha:
 ${ssLines}
 
+Interactions:
+${intLines}
+
 ${lpBlock('Current 10-Year Luck Period', curLP)}
 
 Annual Luck:
 ${annualBlock(curLP)}
-
-Monthly Luck for Current Year:
-${monthlyBlock()}
 
 ${lpBlock('Next 10-Year Luck Period', nextLP)}
 

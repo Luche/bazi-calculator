@@ -49,14 +49,3 @@ function annualForLuck(luckPillar, birthYear) {
   }
   return out;
 }
-
-function monthlyForYear(year) {
-  const { stem: yearStem } = annualPillar(year);
-  const out = [];
-  const ordered = [...T.BRANCHES.slice(2), ...T.BRANCHES.slice(0, 2)]; // 寅…丑
-  ordered.forEach((br, k) => {
-    const st = T.monthStem(yearStem, br);
-    out.push({ month: k + 1, stem: st, branch: br });
-  });
-  return out;
-}

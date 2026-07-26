@@ -46,7 +46,18 @@
   const _SELF_CLASH = ['辰','午','酉','亥'];
   const _ZI_MAO = ['子','卯'];
 
-  // Print-order ranking for interaction labels (lower = higher priority)
+  // Print-order ranking for interaction labels (lower = higher priority).
+  // Heavenly Stem interactions sit on a separate axis and bookend the list; the
+  // Earthly Branch block in between follows the classical 12-tier hierarchy
+  // (each tier overrides/outranks every tier below it):
+  //  1. seasonal combination         7.  half combination
+  //  2. triangular combination       8.  impolite penalty (Zi-Mao)
+  //  3. ungrateful/arrogant penalty  9.  self clash (self-punishment)
+  //      (full 3-branch trio)        10. six combination
+  //  4. branch conflict (six clash)  11. destruction
+  //  5. half seasonal                12. harm
+  //  6. partial persecuting clash
+  //      (2-of-3 trio)
   const _RANK_PREFIXES = [
     'stem combination', 'stem conflict',
     'seasonal combination', 'triangular combination',

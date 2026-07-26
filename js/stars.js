@@ -16,7 +16,7 @@
     ['己', [_e(1),_e(9)],  _e(10), [_e(6),_e(8)],  _e(7),  _e(5)],
     ['庚', [_e(2),_e(8)],  _e(12), [_e(10)],        _e(9),  _e(11)],
     ['辛', [_e(7),_e(3)],  _e(1),  [_e(9),_e(11)], _e(10), _e(10)],
-    ['壬', [_e(6),_e(4)],  _e(3),  [_e(10)],        _e(12), _e(1)],
+    ['壬', [_e(6),_e(4)],  _e(3),  [_e(1)],         _e(12), _e(1)],
     ['癸', [_e(6),_e(4)],  _e(4),  [_e(12),_e(2)], _e(1),  _e(9)],
   ];
 
@@ -55,13 +55,55 @@
     '巳':'辰','午':'辰','未':'辰','申':'未','酉':'未','戌':'未',
   };
 
+  // Tai Ji Noble (太极贵人) — by Day Master
+  const _TAIJI = {
+    '甲':['子','午'], '乙':['子','午'],
+    '丙':['卯','酉'], '丁':['卯','酉'],
+    '戊':['辰','戌','丑','未'], '己':['辰','戌','丑','未'],
+    '庚':['寅','亥'], '辛':['寅','亥'],
+    '壬':['巳','申'], '癸':['巳','申'],
+  };
+  // National Seal (国印贵人) — by Day Master
+  const _NATIONAL_SEAL = {
+    '甲':'戌','乙':'亥','丙':'丑','丁':'寅','戊':'丑',
+    '己':'寅','庚':'辰','辛':'巳','壬':'未','癸':'申',
+  };
+  // Kui Gang (魁罡) — exact Day Pillar stem+branch
+  const _KUI_GANG = ['庚辰','庚戌','壬辰','戊戌'];
+
+  // Three Extraordinary Nobleman (三奇貴人) — Year/Month/Day stems only.
+  // Source: en.wikibooks.org/wiki/Ba_Zi/Symbolic_Stars (the "BaZi Book Wiki" cited above).
+  // Full strength requires exactly Day→Month→Year reading in this order; any other
+  // arrangement of the same three stems still lights the star, without the '*'.
+  const _THREE_EXTRAORDINARY = [
+    { name: 'Heavenly Extraordinary Nobleman', day: '甲', month: '戊', year: '庚' },
+    { name: 'Earthly Extraordinary Nobleman',  day: '乙', month: '丙', year: '丁' },
+    { name: 'Human Extraordinary Nobleman',    day: '壬', month: '癸', year: '辛' },
+  ];
+
+  function _threeExtraordinaryTag(chart) {
+    const y = chart.year.stem, m = chart.month.stem, d = chart.day.stem;
+    const cell = [y, m, d];
+    for (const def of _THREE_EXTRAORDINARY) {
+      const required = [def.year, def.month, def.day];
+      if (new Set(cell).size === 3 && required.every(s => cell.includes(s))) {
+        const inOrder = d === def.day && m === def.month && y === def.year;
+        return def.name + (inOrder ? '*' : '');
+      }
+    }
+    return null;
+  }
+
   function _isBranch(ch) { return T.BRANCHES.includes(ch); }
   function _isStem(ch)   { return T.STEMS.includes(ch); }
 
   // Returns array of star-name strings for a given branch + HS pair (can be a birth chart pillar or a luck pillar)
-  function _starsForBranchAndStem(branch, hs, chart) {
+  // pillarIdx (0=year,1=month,2=day,3=hour) is only known for birth-chart pillars; luck/annual
+  // pillars pass undefined, which skips pillar-position-dependent stars (Kui Gang, Three Extraordinary Nobleman).
+  function _starsForBranchAndStem(branch, hs, chart, pillarIdx) {
     const result = [];
     const dm = chart.dm;
+    const isDayPillar = pillarIdx === 2;
 
     // 1. Symbolic Stars (by Day Stem)
     const symRow = _SYMBOLIC.find(r => r[0] === dm);
@@ -116,6 +158,24 @@
     if (voidY.includes(branch)) result.push('Heaven Void (YP)');
     if (voidD.includes(branch)) result.push('Heaven Void (DP)');
 
+    // 8. Tai Ji Noble (by Day Master)
+    if ((_TAIJI[dm] || []).includes(branch)) result.push('Tai Ji Noble');
+
+    // 9. National Seal (by Day Master)
+    if (_NATIONAL_SEAL[dm] === branch) result.push('National Seal');
+
+    // 10. Hall of Learning (by Day Master) — the DM's 长生 branch
+    if (T.twelveStage(dm, branch) === 'Birth') result.push('Hall of Learning');
+
+    // 11. Kui Gang (魁罡) — Day Pillar only, matches the whole GZ
+    if (isDayPillar && _KUI_GANG.includes(hs + branch)) result.push('Kui Gang');
+
+    // 12. Three Extraordinary Nobleman — Year/Month/Day stems only, whole-chart pattern
+    if (pillarIdx === 0 || pillarIdx === 1 || pillarIdx === 2) {
+      const tag = _threeExtraordinaryTag(chart);
+      if (tag) result.push(tag);
+    }
+
     // Deduplicate while preserving order
     return [...new Set(result)];
   }
@@ -124,10 +184,11 @@
   window.starsForPillar = function(pillarIdx, chart) {
     const p = chart.pillars[pillarIdx];
     if (!p) return [];
-    return _starsForBranchAndStem(p.branch, p.stem, chart);
+    return _starsForBranchAndStem(p.branch, p.stem, chart, pillarIdx);
   };
 
-  // Public: stars for a luck pillar (only Symbolic Stars checked — others need birth chart context)
+  // Public: stars for a luck pillar (pillarIdx omitted — Kui Gang and Three Extraordinary
+  // Nobleman are natal-chart-only patterns and never fire here)
   window.starsForLuckPillar = function(luckPillar, chart) {
     return _starsForBranchAndStem(luckPillar.branch, luckPillar.stem, chart);
   };

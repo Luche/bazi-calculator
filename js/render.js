@@ -31,7 +31,12 @@ function _renderInteractionsRow(items, title) {
   items.forEach(s => {
     const d = document.createElement('div');
     d.className = 'int-item';
-    d.textContent = s;
+    if (typeof s === 'string') {
+      d.textContent = s;
+    } else {
+      d.textContent = s.text;
+      d.style.color = s.color;
+    }
     div.appendChild(d);
   });
   return div;

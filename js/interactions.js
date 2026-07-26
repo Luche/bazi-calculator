@@ -38,12 +38,39 @@
   const _DESTROY = [
     ['子','酉'],['丑','辰'],['寅','亥'],['卯','午'],['申','巳'],['未','戌'],
   ];
-  // Three Persecuting Clash — partial pairs (each pair can appear independently)
-  const _PERSIST_PAIRS = [
-    ['寅','巳'],['巳','申'],['申','寅'],
-    ['丑','戌'],['戌','未'],['未','丑'],
+  // Persecution/penalty trios — full set (all 3 present) vs partial (2 of 3)
+  const _PERSIST_TRIOS = [
+    {trio:['寅','巳','申'], label:'ungrateful penalty'},
+    {trio:['丑','戌','未'], label:'arrogant penalty'},
   ];
   const _SELF_CLASH = ['辰','午','酉','亥'];
+  const _ZI_MAO = ['子','卯'];
+
+  // Print-order ranking for interaction labels (lower = higher priority)
+  const _RANK_PREFIXES = [
+    'stem combination', 'stem conflict',
+    'seasonal combination', 'triangular combination',
+    'ungrateful penalty', 'arrogant penalty',
+    'branch conflict', 'half seasonal',
+    'partial persecuting clash', 'half combination',
+    'impolite penalty', 'self clash',
+    'six combination', 'destruction', 'harm',
+    'HS+HHS combination',
+  ];
+  function _rankOf(text) {
+    const i = _RANK_PREFIXES.findIndex(p => text.startsWith(p));
+    return i === -1 ? _RANK_PREFIXES.length : i;
+  }
+  function _sortByRank(arr) {
+    return arr
+      .map((x, i) => [x, i])
+      .sort((a, b) => {
+        const ra = _rankOf(typeof a[0] === 'string' ? a[0] : a[0].text);
+        const rb = _rankOf(typeof b[0] === 'string' ? b[0] : b[0].text);
+        return ra - rb || a[1] - b[1];
+      })
+      .map(([x]) => x);
+  }
 
   // ── Pinyin helpers ──────────────────────────────────────────────────────────
   function _bPY(b) { return T.BRANCH_PY[b]; }
@@ -79,6 +106,13 @@
   // ── EB pair interactions ───────────────────────────────────────────────────
   function _ebPairInteractions(b1, b2, adjacent) {
     const res = [];
+    // Impolite Penalty (Zi-Mao)
+    {
+      const [a, b] = _ZI_MAO;
+      if ((b1===a&&b2===b)||(b1===b&&b2===a)) {
+        res.push(`impolite penalty (${_bPY(b1)}-${_bPY(b2)})`);
+      }
+    }
     if (b1 === b2) {
       if (_SELF_CLASH.includes(b1)) res.push(`self clash (${_bPY(b1)})`);
       return res;
@@ -109,12 +143,7 @@
         res.push(`destruction (${_bPY(b1)}-${_bPY(b2)})`);
       }
     }
-    // Three Persecuting Clash (partial pairs)
-    for (const [a, b] of _PERSIST_PAIRS) {
-      if ((b1===a&&b2===b)||(b1===b&&b2===a)) {
-        res.push(`three persecuting clash (${_bPY(b1)}-${_bPY(b2)})`);
-      }
-    }
+    
     return res;
   }
 
@@ -122,7 +151,7 @@
   // `branches` = array of branch chars (4 birth chart branches, or 5 for luck+chart)
   // `ownerIdx` = index in `branches` we care about (to label which combos appear "in" this pillar)
   // Returns {threeCombos, seasonal} as string arrays attributed to ownerIdx
-  function _multiComboStrings(branches, ownerIdx) {
+  function _multiComboStrings(branches, ownerIdx, stems) {
     const res = [];
     const ob = branches[ownerIdx];
 
@@ -151,25 +180,26 @@
         res.push(`triangular combination (${trio.map(_bPY).join('-')} [${el}])`);
       } else if (presentInChart.length === 2 && presentInChart.includes(ob)) {
         const missing = trio.find(b => !branches.includes(b));
-        // Show as hidden triangular — arrange so missing is in middle if it's the "anchor"
+        // Show as half combination — arrange so missing is in middle if it's the "anchor"
         const [first, last] = presentInChart;
         const orderedStr = `${_bPY(first)}-(${_bPY(missing)})-${_bPY(last)}`;
-        res.push(`hidden triangular combination (${orderedStr} [${el}])`);
-        // Check also if this pair qualifies as a half-combination (when NO third is in chart)
-        // (already handled — hidden triangular takes precedence over half)
-      } else if (presentInChart.length === 1 && presentInChart[0] === ob) {
-        // Only this pillar has one branch of a three-combo
-        // Check if it forms a half combination with any other branch
-        for (const {a, b, el: hel} of _HALF_PAIRS) {
-          if ((ob===a && branches.includes(b)) || (ob===b && branches.includes(a))) {
-            const partner = ob===a ? b : a;
-            // Confirm the third branch is NOT in branches (otherwise it's hidden triangular, handled above)
-            const thirdBranch = trio.find(br => br !== ob && br !== partner);
-            if (!branches.includes(thirdBranch)) {
-              res.push(`half combination (${_bPY(ob)}-${_bPY(partner)} [${hel}])`);
-            }
-          }
+        const text = `half combination (${orderedStr} [${el}])`;
+        if (stems && stems.some(s => T.STEM_ELEMENT[s] === el)) {
+          res.push({text, color: T.ELEMENT_COLORS[el]});
+        } else {
+          res.push(text);
         }
+      }
+    }
+
+    // Persecution / penalty trios (full set vs partial pair)
+    for (const {trio, label} of _PERSIST_TRIOS) {
+      if (!trio.includes(ob)) continue;
+      const presentInChart = trio.filter(b => branches.includes(b));
+      if (presentInChart.length === 3) {
+        res.push(`${label} (${trio.map(_bPY).join('-')})`);
+      } else if (presentInChart.length === 2 && presentInChart.includes(ob)) {
+        res.push(`partial persecuting clash (${presentInChart.map(_bPY).join('-')})`);
       }
     }
 
@@ -185,15 +215,17 @@
     const allBranches = ps.filter(p => p).map(p => p.branch);
     const result = ps.map(() => []);
 
+    const allStems = ps.filter(p => p).map(p => p.stem);
+
     for (let i = 0; i < n; i++) {
       const pi = ps[i];
       const seen = new Set();
-      const push = (i, s) => { if (s && !seen.has(s)) { seen.add(s); result[i].push(s); } };
+      const push = (i, s) => {
+        const key = typeof s === 'string' ? s : (s && s.text);
+        if (key && !seen.has(key)) { seen.add(key); result[i].push(s); }
+      };
 
       if (!pi) continue;
-
-      // HS+HHS with own branch hidden stems (self-pillar combo)
-      for (const s of _hsHhsCombo(pi.stem, T.HIDDEN_STEMS[pi.branch])) push(i, s);
 
       for (let j = 0; j < n; j++) {
         if (j === i) continue;
@@ -212,8 +244,13 @@
         for (const s of _hsHhsCombo(pi.stem, T.HIDDEN_STEMS[pj.branch])) push(i, s);
       }
 
-      // Multi-pillar combos (three-combo / seasonal)
-      for (const s of _multiComboStrings(allBranches, i)) push(i, s);
+      // Multi-pillar combos (three-combo / seasonal / persecution)
+      for (const s of _multiComboStrings(allBranches, i, allStems)) push(i, s);
+
+      // HS+HHS with own branch hidden stems (self-pillar combo)
+      for (const s of _hsHhsCombo(pi.stem, T.HIDDEN_STEMS[pi.branch])) push(i, s);
+
+      result[i] = _sortByRank(result[i]);
     }
 
     return result;
@@ -226,7 +263,10 @@
     const leb = luckPillar.branch;
     const seen = new Set();
     const result = [];
-    const push = s => { if (s && !seen.has(s)) { seen.add(s); result.push(s); } };
+    const push = s => {
+      const key = typeof s === 'string' ? s : (s && s.text);
+      if (key && !seen.has(key)) { seen.add(key); result.push(s); }
+    };
 
     // HS+HHS: luck HS vs luck EB's hidden stems (own pillar combo)
     for (const s of _hsHhsCombo(lhs, T.HIDDEN_STEMS[leb])) push(s);
@@ -259,8 +299,9 @@
 
     // Multi-pillar combos: luck EB + all 4 birth chart EBs
     const allBranches = [leb, ...ps.map(p => p.branch)];
-    for (const s of _multiComboStrings(allBranches, 0)) push(s);
+    const allStems = [lhs, ...ps.map(p => p.stem)];
+    for (const s of _multiComboStrings(allBranches, 0, allStems)) push(s);
 
-    return result;
+    return _sortByRank(result);
   };
 })();

@@ -2,8 +2,19 @@
 
 let _lastChart = null;
 
+function _isDarkMode() {
+  return document.documentElement.classList.contains('dark-mode');
+}
+
+function _elementColors(element) {
+  const base = T.ELEMENT_COLORS[element] || '#e8e8e8';
+  return _isDarkMode() ? { bg: '#2a2a2e', fg: base } : { bg: base, fg: '' };
+}
+
 function applyElementColor(el, element) {
-  el.style.backgroundColor = T.ELEMENT_COLORS[element] || '#e8e8e8';
+  const { bg, fg } = _elementColors(element);
+  el.style.backgroundColor = bg;
+  el.style.color = fg;
 }
 
 function _colorStem(el, stem)   { applyElementColor(el, T.STEM_ELEMENT[stem]); }
@@ -217,13 +228,13 @@ function buildAnnualTable(rows, dm, chart) {
     const tr = document.createElement('tr');
     tr.dataset.stem = r.stem;
     tr.dataset.branch = r.branch;
-    const hsColor = T.ELEMENT_COLORS[T.STEM_ELEMENT[r.stem]];
-    const ebColor = T.ELEMENT_COLORS[T.BRANCH_ELEMENT[r.branch]];
+    const hs = _elementColors(T.STEM_ELEMENT[r.stem]);
+    const eb = _elementColors(T.BRANCH_ELEMENT[r.branch]);
     tr.innerHTML = `<td>${r.year}</td>
       <td>${r.age}</td>
       <td class="gz-cell" style="font-size:1.1rem">${r.stem}${r.branch}</td>
-      <td><span style="background:${hsColor};padding:2px 6px;border-radius:3px">${r.stem}</span></td>
-      <td><span style="background:${ebColor};padding:2px 6px;border-radius:3px">${r.branch}</span></td>
+      <td><span class="elem-chip" style="background:${hs.bg};color:${hs.fg}">${r.stem}</span></td>
+      <td><span class="elem-chip" style="background:${eb.bg};color:${eb.fg}">${r.branch}</span></td>
       <td>${tg}</td>`;
     tr.addEventListener('click', () => {
       tbody.querySelectorAll('tr.selected').forEach(el => el.classList.remove('selected'));

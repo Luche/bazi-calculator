@@ -1,11 +1,76 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html {
+  background: #f5f5f5;
+  min-height: 100%;
+}
+
 body {
   font-family: 'Segoe UI', Arial, sans-serif;
   background: #f5f5f5;
   color: #222;
   padding: 16px;
+  min-height: 100vh;
 }
+
+/* Night mode: a page-wide filter dims most of the palette (backgrounds,
+   accent blue, warning yellow, shadows, etc.) at once. Applied to <html>
+   (not <body>) so the viewport area below short content — painted by
+   <html>'s own background — gets dimmed too, instead of staying white.
+   Must be a pure self-inverse transform (invert(1) + hue-rotate(180deg),
+   no brightness/contrast) so the element-colored pillar cells below can
+   cancel it out by applying the identical filter a second time. */
+html.dark-mode {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Pillar cells carry their own hand-picked dark colors (set in render.js)
+   rather than an inverted/hue-rotated version of the light-mode color, so
+   cancel out the ancestor's filter here. .unknown-cell placeholders are
+   excluded so they dim along with the rest of the page instead of staying
+   bright. */
+html.dark-mode .gz-box:not(.unknown-cell),
+html.dark-mode .hhs-chip:not(.unknown-cell),
+html.dark-mode .nayin-cell:not(.unknown-cell),
+html.dark-mode .elem-chip {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Secondary labels inside pillar cells use light-mode-only dark grays;
+   override for legibility against the new dark cell background. */
+html.dark-mode .gz-box .en,
+html.dark-mode .gz-box .py,
+html.dark-mode .gz-box .ten-god,
+html.dark-mode .hhs-chip .ten-god {
+  color: #bbb;
+}
+
+/* The accent-blue buttons (#3a6bcc) still read as bright blue after the
+   page-wide invert/hue-rotate, so cancel the filter on them too and give
+   them an explicit grey instead. */
+html.dark-mode #calc-btn,
+html.dark-mode #copy-btn,
+html.dark-mode .help-fab,
+html.dark-mode .dark-toggle {
+  filter: invert(1) hue-rotate(180deg);
+  background: #52525a;
+}
+html.dark-mode #calc-btn:hover,
+html.dark-mode #copy-btn:hover,
+html.dark-mode .help-fab:hover,
+html.dark-mode .dark-toggle:hover {
+  background: #66666e;
+}
+
+.dark-toggle {
+  position: fixed; top: 24px; right: 24px; z-index: 1000;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: #3a6bcc; color: #fff; border: none;
+  font-size: 1.2rem; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  transition: background .15s;
+}
+.dark-toggle:hover { background: #2a55b0; }
 
 h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 
@@ -285,6 +350,7 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 }
 .annual-table tr:hover td { background: #f5f5ff; }
 .gz-cell { font-size: 1rem; }
+.elem-chip { padding: 2px 6px; border-radius: 3px; }
 
 /* ── Responsive ── */
 @media (max-width: 600px) {

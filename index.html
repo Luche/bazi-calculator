@@ -9,6 +9,8 @@
 <body>
   <h1>BaZi Calculator 八字命盘</h1>
 
+  <button id="dark-toggle" class="dark-toggle" title="Toggle night mode" aria-label="Toggle night mode">🌙</button>
+
   <form id="input-form" onsubmit="return false;">
     <label>Name (optional)
       <input type="text" id="inp-name" placeholder="Optional">
@@ -172,6 +174,25 @@
     helpOverlay.addEventListener('click', (e) => {
       if (e.target === helpOverlay) helpOverlay.classList.remove('open');
     });
+
+    // Apply saved night-mode preference first so pillar cell colors (baked
+    // in as inline styles at render time) are correct on the very first
+    // render below, and re-render on toggle so an already-rendered chart
+    // picks up the new colors immediately.
+    (function () {
+      const darkToggle = document.getElementById('dark-toggle');
+      const applyDarkMode = (on) => {
+        document.documentElement.classList.toggle('dark-mode', on);
+        darkToggle.textContent = on ? '☀️' : '🌙';
+      };
+      applyDarkMode(localStorage.getItem('darkMode') === '1');
+      darkToggle.addEventListener('click', () => {
+        const on = !document.documentElement.classList.contains('dark-mode');
+        applyDarkMode(on);
+        localStorage.setItem('darkMode', on ? '1' : '0');
+        if (_navParams) _doRender(_navParams);
+      });
+    })();
 
     // Default to today's date/time and render immediately on page load.
     (function () {

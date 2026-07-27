@@ -294,6 +294,15 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
   .int-item, .int-title { font-size: .54rem; }
 }
 
+/* Portrait: 8-per-row makes cards too small to read, so match the main
+   pillar grid's column width instead (4 columns, 3 gaps) — landscape
+   (including desktop) keeps the 1:2 / 8-per-row sizing above. */
+@media (orientation: portrait) {
+  .luck-card {
+    flex-basis: calc((100% - 3 * 4px) / 4);
+  }
+}
+
 /* ── Stars row ── */
 /* Same text sizing as .interactions-row (stars now render like interactions
    — a title + comma-joined .int-item text — so they need the same font-size

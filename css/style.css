@@ -77,11 +77,19 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 #result h2 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; letter-spacing: .03em; }
 
 /* ── Pillar grid (4 columns Hour|Day|Month|Year) ── */
-.pillar-grid {
+/* Cell height variables shared with .luck-row so luck cards match the main
+   chart's cell heights (and, via the plain .gz-box etc font-size rules
+   below, its fonts too) whenever a luck-card doesn't override them itself —
+   i.e. in portrait, where luck cards intentionally look like a main pillar
+   column. See the @media (orientation: landscape) block further down for
+   the luck-specific compact overrides used at 8-per-row. */
+.pillar-grid, .luck-row {
   --gz-h: 78px;
   --hhs-h: 42px;
   --nayin-h: 34px;
   --qi-h: 16px;
+}
+.pillar-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
@@ -192,16 +200,14 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
   padding-bottom: 4px;
 }
 .luck-card {
-  /* 8 cards, each 1/8 of the row's width (which equals the main pillar
-     grid's width, both capped by #result's 860px column) — i.e. exactly
-     half the width of one of the grid's 4 columns, so 8 fit at once at
-     max screen width. Text scales with the card via container-query units
-     (below) instead of relying on a fixed width. No horizontal padding, so
-     the visual gap between cards is exactly .luck-row's gap — matching the
-     gap used between the stacked cells (HS, EB, ...) inside a card below. */
-  container-type: inline-size;
+  /* Default (portrait): sized like a main pillar-grid column — 4 across the
+     row (3 gaps), same cell heights/fonts as the main grid via the shared
+     --gz-h etc. variables and the plain .gz-box/.hhs-chip/etc rules below
+     (no luck-specific override in this mode). No horizontal padding, so the
+     visual gap between cards is exactly .luck-row's gap — matching the gap
+     used between the stacked cells (HS, EB, ...) inside a card below. */
   min-width: 70px;
-  flex: 0 0 calc((100% - 7 * 4px) / 8);
+  flex: 0 0 calc((100% - 3 * 4px) / 4);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -210,22 +216,31 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
   cursor: pointer;
 }
 
-/* HS/EB glyph box: no forced ratio — height just follows its content,
-   same as the main four-pillars grid's .gz-box. */
-.luck-card .gz-box {
-  height: auto;
-}
+/* Landscape (including desktop): compact 8-per-row layout instead — each
+   card 1/8 of the row's width (which equals the main pillar grid's width,
+   both capped by #result's 860px column), i.e. half a main column's width.
+   Text scales with the card via container-query units so it doesn't wrap
+   or truncate at that narrower width. */
+@media (orientation: landscape) {
+  .luck-card {
+    container-type: inline-size;
+    flex-basis: calc((100% - 7 * 4px) / 8);
+  }
+  /* No forced heights — these cells' font sizes are already scaled down
+     for the narrower landscape card (below), so let them shrink to fit
+     instead of staying pinned to the main pillar grid's fixed heights,
+     which looked oversized/disproportionate at this width. */
+  .luck-card .gz-box, .luck-card .hhs-row, .luck-card .nayin-cell, .luck-card .qi-phase {
+    height: auto;
+  }
 
-/* Font sizes below are in container-query width units (cqw = 1% of the
-   .luck-card's own inline size), scaled to match the proportions of the
-   original fixed-size card (~140px wide) — so text grows/shrinks with the
-   card instead of wrapping or truncating at a fixed pixel size. */
-.luck-card .gz-box .zh { font-size: clamp(9px, 21cqw, 32px); }
-.luck-card .gz-box .en, .luck-card .gz-box .py, .luck-card .gz-box .ten-god { font-size: clamp(6px, 8cqw, 12px); }
-.luck-card .hhs-chip .zh { font-size: clamp(6px, 9cqw, 16px); }
-.luck-card .hhs-chip .ten-god { font-size: clamp(5px, 7cqw, 10px); }
-.luck-card .nayin-cell { font-size: clamp(5px, 7cqw, 10px); }
-.luck-card .qi-phase { font-size: clamp(5px, 7.5cqw, 11px); }
+  .luck-card .gz-box .zh { font-size: clamp(9px, 21cqw, 32px); }
+  .luck-card .gz-box .en, .luck-card .gz-box .py, .luck-card .gz-box .ten-god { font-size: clamp(6px, 8cqw, 12px); }
+  .luck-card .hhs-chip .zh { font-size: clamp(6px, 9cqw, 16px); }
+  .luck-card .hhs-chip .ten-god { font-size: clamp(5px, 7cqw, 10px); }
+  .luck-card .nayin-cell { font-size: clamp(5px, 7cqw, 10px); }
+  .luck-card .qi-phase { font-size: clamp(5px, 7.5cqw, 11px); }
+}
 
 /* Age/year header, at the top of the card (like .pillar-label) — the only
    part that highlights on hover/click, since the card itself has no chrome. */
@@ -275,7 +290,7 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 @media (max-width: 600px) {
   #input-form { grid-template-columns: 1fr; }
   .dob-row { grid-template-columns: repeat(2, 1fr); }
-  .pillar-grid {
+  .pillar-grid, .luck-row {
     --gz-h: 68px;
     --hhs-h: 38px;
     --nayin-h: 30px;
@@ -292,15 +307,6 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
   .qi-phase { font-size: .56rem; }
   .pillar-label { font-size: .65rem; }
   .int-item, .int-title { font-size: .54rem; }
-}
-
-/* Portrait: 8-per-row makes cards too small to read, so match the main
-   pillar grid's column width instead (4 columns, 3 gaps) — landscape
-   (including desktop) keeps the 1:2 / 8-per-row sizing above. */
-@media (orientation: portrait) {
-  .luck-card {
-    flex-basis: calc((100% - 3 * 4px) / 4);
-  }
 }
 
 /* ── Stars row ── */

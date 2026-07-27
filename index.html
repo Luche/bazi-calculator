@@ -149,6 +149,9 @@
       const sex = document.querySelector('input[name="sex"]:checked').value;
       const noHour = document.getElementById('no-hour').checked;
       if (!day || !month || !year || (!timeVal && !noHour)) { alert('Please enter date and time.'); return; }
+      if (year < 1900 || year > 2100) { alert('Year must be between 1900 and 2100.'); return; }
+      const daysInMonth = new Date(year, month, 0).getDate();
+      if (day < 1 || day > daysInMonth) { alert(`Day must be between 1 and ${daysInMonth} for the selected month.`); return; }
       const [hour, minute] = noHour ? [null, null] : timeVal.split(':').map(Number);
       _doRender({year, month, day, hour, minute, sex});
     }

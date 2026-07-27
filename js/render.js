@@ -18,13 +18,8 @@ function _renderStarsRow(names, title) {
   hdr.textContent = title || 'Symbolic Stars';
   wrap.appendChild(hdr);
   const row = document.createElement('div');
-  row.className = 'stars-row';
-  names.forEach(name => {
-    const s = document.createElement('span');
-    s.className = 'star-name';
-    s.textContent = name;
-    row.appendChild(s);
-  });
+  row.className = 'int-item';
+  row.textContent = names.join(', ');
   wrap.appendChild(row);
   return wrap;
 }
@@ -188,19 +183,6 @@ function buildPillarCol(pillarIdx, chart, stars, interactions, labelText, navInf
   return col;
 }
 
-function buildElementBar(balance) {
-  const bar = document.createElement('div');
-  bar.className = 'element-bar';
-  for (const [el, count] of Object.entries(balance)) {
-    const chip = document.createElement('div');
-    chip.className = 'element-chip';
-    applyElementColor(chip, el);
-    chip.innerHTML = `${el} <span class="count">${count}</span>`;
-    bar.appendChild(chip);
-  }
-  return bar;
-}
-
 function showAnnualSelection(year, stem, branch, chart) {
   const activeWrap = document.querySelector('.annual-wrap.open');
   if (!activeWrap) return;
@@ -261,8 +243,9 @@ function _buildLuckCard(lp, chart) {
 
   const hdr = document.createElement('div');
   hdr.className = 'lc-header';
-  hdr.innerHTML = `<div class="lc-age">Age ${lp.ageStart}–${lp.ageEnd}</div>
-    <div class="lc-year">${lp.yearStart}–${lp.yearEnd}</div>`;
+  const monthStr = String(lp.monthStart).padStart(2, '0');
+  hdr.innerHTML = `<div class="lc-age">Age ${lp.ageStart}+</div>
+    <div class="lc-year">${monthStr}/${lp.yearStart}+</div>`;
   card.appendChild(hdr);
 
   _buildPillarCells(lp.stem, lp.branch, chart.dm).forEach(c => card.appendChild(c));
@@ -281,7 +264,9 @@ function buildLuckRow(luckArr, chart) {
   const row = document.createElement('div');
   row.className = 'luck-row';
 
-  luckArr.forEach((lp) => {
+  // Right-to-left reading order (matches the four-pillars grid above):
+  // earliest pillar rendered rightmost, later pillars toward the left.
+  [...luckArr].reverse().forEach((lp) => {
     const card = _buildLuckCard(lp, chart);
     row.appendChild(card);
 
@@ -314,7 +299,6 @@ function renderChart(containerEl, chart, onDateNav) {
   if (warn) warn.style.display = chart.nearJieBoundary ? 'block' : 'none';
 
   // Compute derived data
-  const balance = elementBalance(chart);
   const starsList   = chart.pillars.map((_, i) => starsForPillar(i, chart));
   const intsList    = pillarsInteractionList(chart);
   const luckArr     = luckPillars(chart, 10);
@@ -344,17 +328,16 @@ function renderChart(containerEl, chart, onDateNav) {
   pillarsSection.appendChild(grid);
   containerEl.appendChild(pillarsSection);
 
-  // ── Element balance ──
-  const balSection = document.createElement('section');
-  balSection.innerHTML = '<h2>Element Balance</h2>';
-  balSection.appendChild(buildElementBar(balance));
-  containerEl.appendChild(balSection);
-
   // ── Luck pillars ──
   const luckSection = document.createElement('section');
   luckSection.innerHTML = '<h2>Luck Pillars (大运) — click to expand</h2>';
   luckSection.appendChild(buildLuckRow(luckArr, chart));
   containerEl.appendChild(luckSection);
+
+  // Row renders right-to-left (earliest pillar rightmost); start scrolled
+  // there so the nearest pillar is visible without scrolling.
+  const luckRowEl = luckSection.querySelector('.luck-row');
+  if (luckRowEl) luckRowEl.scrollLeft = luckRowEl.scrollWidth;
 }
 
 // ── Chart Glossary help panel ──────────────────────────────────────────────

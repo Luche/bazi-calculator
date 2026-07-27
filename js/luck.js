@@ -22,21 +22,28 @@ function luckPillars(chart, count = 10) {
   const diffSec = Math.abs(chart.dobSec - boundarySec);
   const days = diffSec / 86400;
   let gregStart = Math.floor(days / 3);
+  const remainderMonths = Math.floor((days - gregStart * 3) * 4);
   if (gregStart === 0) gregStart = 1;
+
+  // The remainder (days -> months) can push the first pillar's actual start
+  // date past year-end, so derive the calendar year from real date math
+  // rather than just adding whole years to the birth year.
+  const startDate = new Date(chart.dob.getFullYear() + gregStart, chart.dob.getMonth() + remainderMonths, chart.dob.getDate());
+  const yearBase = startDate.getFullYear();
+  const monthBase = startDate.getMonth() + 1;
 
   const monthIdx = T.JIAZI_INDEX[chart.month.stem + chart.month.branch];
   const step = fwd ? 1 : -1;
-  const birthYear = chart.dob.getFullYear();
   const pillars = [];
 
   for (let k = 0; k < count; k++) {
     const idx = ((monthIdx + step * (k + 1)) % 60 + 60) % 60;
     const { stem, branch } = T.jiazi(idx);
-    const y0 = birthYear + gregStart + 10 * k;
+    const y0 = yearBase + 10 * k;
     const y1 = y0 + 9;
-    const a0 = y0 - birthYear + 1;
-    const a1 = y1 - birthYear + 1;
-    pillars.push({ ageStart: a0, ageEnd: a1, yearStart: y0, yearEnd: y1, stem, branch });
+    const a0 = gregStart + 10 * k;
+    const a1 = a0 + 9;
+    pillars.push({ ageStart: a0, ageEnd: a1, yearStart: y0, yearEnd: y1, monthStart: monthBase, stem, branch });
   }
   return pillars;
 }

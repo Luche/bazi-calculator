@@ -25,13 +25,3 @@ function naYin(chart) {
 function voidsPerPillar(chart) {
   return chart.pillars.map(p => p ? T.voidBranches(p.stem, p.branch) : ['—', '—']);
 }
-
-function elementBalance(chart) {
-  const counts = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
-  for (const p of chart.pillars) {
-    if (!p) continue;
-    counts[T.STEM_ELEMENT[p.stem]]++;
-    counts[T.BRANCH_ELEMENT[p.branch]]++;
-  }
-  return counts;
-}

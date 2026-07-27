@@ -77,14 +77,11 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 #result h2 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; letter-spacing: .03em; }
 
 /* ── Pillar grid (4 columns Hour|Day|Month|Year) ── */
-/* Cell size variables shared with .luck-row so luck cards match main-chart cells exactly. */
-.pillar-grid, .luck-row {
+.pillar-grid {
   --gz-h: 78px;
   --hhs-h: 42px;
   --nayin-h: 34px;
   --qi-h: 16px;
-}
-.pillar-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
@@ -185,19 +182,6 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
   white-space: nowrap;
 }
 
-/* ── Element balance bar ── */
-.element-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
-.element-chip {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 5px;
-  font-size: .85rem;
-  font-weight: 600;
-}
-.element-chip .count { font-size: 1rem; font-weight: 700; }
-
 /* ── Luck pillar row ── */
 /* Cards are chrome-less like .pillar-col — same cells, no border/background/shadow
    at rest. Hover/active give a subtle tint since there's no box to outline. */
@@ -208,15 +192,40 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
   padding-bottom: 4px;
 }
 .luck-card {
-  min-width: 140px;
-  flex: 0 0 140px;
+  /* 8 cards, each 1/8 of the row's width (which equals the main pillar
+     grid's width, both capped by #result's 860px column) — i.e. exactly
+     half the width of one of the grid's 4 columns, so 8 fit at once at
+     max screen width. Text scales with the card via container-query units
+     (below) instead of relying on a fixed width. No horizontal padding, so
+     the visual gap between cards is exactly .luck-row's gap — matching the
+     gap used between the stacked cells (HS, EB, ...) inside a card below. */
+  container-type: inline-size;
+  min-width: 70px;
+  flex: 0 0 calc((100% - 7 * 4px) / 8);
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 4px 2px;
+  gap: 4px;
+  padding: 3px 0;
   border-radius: 6px;
   cursor: pointer;
 }
+
+/* HS/EB glyph box: no forced ratio — height just follows its content,
+   same as the main four-pillars grid's .gz-box. */
+.luck-card .gz-box {
+  height: auto;
+}
+
+/* Font sizes below are in container-query width units (cqw = 1% of the
+   .luck-card's own inline size), scaled to match the proportions of the
+   original fixed-size card (~140px wide) — so text grows/shrinks with the
+   card instead of wrapping or truncating at a fixed pixel size. */
+.luck-card .gz-box .zh { font-size: clamp(9px, 21cqw, 32px); }
+.luck-card .gz-box .en, .luck-card .gz-box .py, .luck-card .gz-box .ten-god { font-size: clamp(6px, 8cqw, 12px); }
+.luck-card .hhs-chip .zh { font-size: clamp(6px, 9cqw, 16px); }
+.luck-card .hhs-chip .ten-god { font-size: clamp(5px, 7cqw, 10px); }
+.luck-card .nayin-cell { font-size: clamp(5px, 7cqw, 10px); }
+.luck-card .qi-phase { font-size: clamp(5px, 7.5cqw, 11px); }
 
 /* Age/year header, at the top of the card (like .pillar-label) — the only
    part that highlights on hover/click, since the card itself has no chrome. */
@@ -224,17 +233,20 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
   text-align: center;
   border-radius: 4px;
   transition: background-color .15s;
-  padding: 4px 2px;
+  padding: 3px 2px;
 }
 .luck-card:hover .lc-header { background-color: rgba(58,107,204,.18); }
 .luck-card.active .lc-header { background-color: rgba(58,107,204,.3); }
-.lc-header .lc-age { font-size: .65rem; color: #555; font-weight: 700; }
-.lc-header .lc-year { font-size: .6rem; color: #777; }
+/* Same scale as .pillar-label / .gz-box .en — the main pillar grid's
+   header and secondary-text sizes — these aren't cramped like the HS/EB
+   glyph box, so no need to shrink them. */
+.lc-header .lc-age { font-size: .75rem; color: #555; font-weight: 700; }
+.lc-header .lc-year { font-size: .7rem; color: #777; }
 
-/* Stars/interactions scaled down to fit the narrower luck card */
-.luck-card .star-name { font-size: .55rem; }
-.luck-card .int-title { font-size: .6rem; }
-.luck-card .int-item { font-size: .58rem; padding-left: 0; line-height: 1.45; }
+/* Symbolic stars (now rendered as a comma-joined .int-item, same as
+   interactions) and interactions: intentionally NOT font-size-overridden
+   here, so they inherit the exact same size as the main pillar grid. */
+.luck-card .int-item { padding-left: 0; }
 
 /* ── Annual table (collapsible) ── */
 .annual-wrap { display: none; margin-top: 12px; }
@@ -263,7 +275,7 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 @media (max-width: 600px) {
   #input-form { grid-template-columns: 1fr; }
   .dob-row { grid-template-columns: repeat(2, 1fr); }
-  .pillar-grid, .luck-row {
+  .pillar-grid {
     --gz-h: 68px;
     --hhs-h: 38px;
     --nayin-h: 30px;
@@ -279,17 +291,14 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
   .nayin-cell { font-size: .53rem; }
   .qi-phase { font-size: .56rem; }
   .pillar-label { font-size: .65rem; }
-  .star-name, .int-item, .int-title { font-size: .54rem; }
-  .luck-card { min-width: 120px; flex-basis: 120px; padding: 2px 1px; }
+  .int-item, .int-title { font-size: .54rem; }
 }
 
 /* ── Stars row ── */
-.stars-block { margin-top:5px; }
-.stars-row { display:flex; flex-wrap:wrap; gap:3px; padding:2px 0; }
-.star-name {
-  background:#fffbe6; border:1px solid #e8c400; border-radius:3px;
-  font-size:.58rem; padding:1px 4px; color:#333; white-space:nowrap;
-}
+/* Same text sizing as .interactions-row (stars now render like interactions
+   — a title + comma-joined .int-item text — so they need the same font-size
+   context, since .int-title/.int-item carry no size of their own). */
+.stars-block { margin-top:5px; font-size:.62rem; color:#222; }
 
 /* ── Interactions ── */
 .interactions-row { margin-top:6px; font-size:.62rem; color:#222; }
@@ -304,7 +313,7 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; text-align: center; }
 }
 .luck-interactions .int-title { font-weight:700; margin:4px 0 2px; }
 .luck-interactions .int-item  { padding-left:6px; line-height:1.6; color:#555; }
-.luck-interactions .stars-block { margin-top:2px; }
+.luck-interactions .stars-block { margin-top:2px; font-size:inherit; }
 
 /* ── Pillar nav controls ── */
 .pillar-nav-row {
